@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>高端登录原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: row;
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 原型部分 */
+        .prototype-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .prototype-container::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 40%, rgba(90, 60, 255, 0.1) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 60%, rgba(255, 60, 172, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        
+        .mobile-device {
+            position: relative;
+            width: 320px;
+            height: 640px;
+            background-color: #000;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 255, 255, 0.1),
+                        0 0 30px rgba(120, 70, 255, 0.2),
+                        0 0 30px rgba(255, 70, 180, 0.2);
+            z-index: 1;
+        }
+        
+        .login-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a14, #141428);
+            overflow: hidden;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        
+        .background-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .line {
+            position: absolute;
+            height: 1px;
+            width: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                transparent 100%);
+            animation: moveLine 8s infinite linear;
+        }
+        
+        @keyframes moveLine {
+            0% { transform: translateY(-100%) }
+            100% { transform: translateY(1000%) }
+        }
+        
+        .line:nth-child(1) { top: 20%; animation-delay: 0s; animation-duration: 10s; }
+        .line:nth-child(2) { top: 40%; animation-delay: 2s; animation-duration: 12s; }
+        .line:nth-child(3) { top: 60%; animation-delay: 4s; animation-duration: 8s; }
+        .line:nth-child(4) { top: 80%; animation-delay: 6s; animation-duration: 14s; }
+        
+        .login-form {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            padding: 30px;
+            background: rgba(10, 10, 20, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 5;
+        }
+        
+        .login-form::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, #6a11cb, #2575fc, #6a11cb);
+            border-radius: 16px;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(8px);
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-logo::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            border-radius: 24px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 30px rgba(106, 17, 203, 0.6);
+        }
+        
+        .login-logo::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 12px;
+            transform: rotate(45deg);
+        }
+        
+        h1 {
+            color: #fff;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+            font-weight: normal;
+            position: relative;
+            letter-spacing: 1px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .input-group::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .input-group.focused::before {
+            opacity: 1;
+        }
+        
+        input {
+            width: 100%;
+            background-color: rgba(16, 16, 35, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        input:focus {
+            border-color: #2575fc;
+            box-shadow: 0 0 15px rgba(37, 117, 252, 0.3);
+            background-color: rgba(15, 15, 30, 0.7);
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+        }
+        
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: all 0.5s ease;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 117, 252, 0.5);
+        }
+        
+        .login-button:hover::before {
+            animation: shine 1.5s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .forgot-password {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .forgot-password a {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-bottom: 2px;
+        }
+        
+        .forgot-password a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            transition: width 0.3s ease;
+        }
+        
+        .forgot-password a:hover {
+            color: #fff;
+        }
+        
+        .forgot-password a:hover::after {
+            width: 100%;
+        }
+        
+        /* 设计说明部分 */
+        .explanation-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+            background: linear-gradient(135deg, #000000, #0a0a14);
+            color: #e0e0e0;
+        }
+        
+        .explanation-heading {
+            font-size: 24px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            position: relative;
+            color: #fff;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .explanation-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+        }
+        
+        .explanation-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            background: rgba(15, 15, 30, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .explanation-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #6a11cb, #2575fc);
+        }
+        
+        .explanation-subheading {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #fff;
+            letter-spacing: 1px;
+            font-weight: 300;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .explanation-subheading::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+        }
+        
+        .explanation-text {
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .design-principles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .design-principle {
+            background: rgba(106, 17, 203, 0.1);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            letter-spacing: 0.5px;
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .color-swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .color-swatch:hover {
+            transform: translateY(-5px);
+        }
+        
+        .color-swatch:hover::after {
+            content: attr(data-color);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .prototype-container, .explanation-container {
+                height: auto;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 原型部分 -->
+    <div class="prototype-container">
+        <div class="mobile-device">
+            <div class="login-screen">
+                <div class="background-lines">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                </div>
+                
+                <div class="login-form">
+                    <div class="login-logo"></div>
+                    <h1>登录</h1>
+                    
+                    <div class="input-group">
+                        <input type="text" placeholder="账号" id="username">
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="password" placeholder="密码" id="password">
+                    </div>
+                    
+                    <button class="login-button" id="login-btn">登录</button>
+                    
+                    <div class="forgot-password">
+                        <a href="#">忘记密码？</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 设计说明部分 -->
+    <div class="explanation-container">
+        <h2 class="explanation-heading">高端登录设计说明</h2>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">设计理念</h3>
+            <p class="explanation-text">
+                这个设计采用高端奢华风格，利用深色背景与紫蓝色渐变打造出尊贵、专业的视觉效果。通过精心设计的光效、材质与动画，营造出高科技与奢华的完美融合，为用户提供一种尊贵的登录体验。
+            </p>
+            <div class="design-principles">
+                <span class="design-principle">奢华</span>
+                <span class="design-principle">高端</span>
+                <span class="design-principle">光效</span>
+                <span class="design-principle">深邃</span>
+                <span class="design-principle">层次感</span>
+            </div>
+        </div>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">色彩方案</h3>
+            <p class="explanation-text">
+                采用深邃的黑色与深蓝色作为基调，配合紫蓝渐变色作为强调色，打造出高贵而不失科技感的视觉体验。精心选择的渐变配色营造出深度与质感，而少量的光效则增添了界面的动态美感。
+            </p>
+            <div class="color-palette">
+                <div class="color-swatch" style="background: #0a0a14;" data-color="背景色"></div>
+                <div class="color-swatch" style="background: linear-gradient(45deg, #6a11cb, #2575fc);" data-color="主要渐变"></div>
+                <div class="color-swatch" style="background: rgba(16, 16, 35, 0.5);" data-color="输入框"></div>
+                <div class="color-swatch" style="background: #2575fc;" data-color="强调色"></div>
+                <div class="color-swatch" style="background: rgba(255, 255, 255, 0.1);" data-color="边框"></div>
+            </div>
+        </div>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">视觉元素</h3>
+            <p class="explanation-text">
+                <strong>发光效果：</strong> 精心设计的渐变光效为界面添加了深度和质感，强化了高端的视觉体验。<br><br>
+                <strong>动态元素：</strong> 细微的动态效果如背景光线移动，增强了界面的生命力和科技感。<br><br>
+                <strong>材质处理：</strong> 使用磨砂玻璃效果（backdrop-filter）和微妙的透明度营造现代感和层次感。<br><br>
+                <strong>边框发光：</strong> 登录表单的微妙发光边框提升了界面的科技感和奢华质感。
+            </p>
+        </div>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">排版</h3>
+            <p class="explanation-text">
+                使用简洁的无衬线字体，增加字母间距提升优雅感，标题采用细体以保持轻盈感。精心的留白和元素间距创造出舒适的视觉节奏，提升了整体的奢华感和专业性。
+            </p>
+        </div>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">交互元素</h3>
+            <p class="explanation-text">
+                <strong>输入框：</strong> 采用深色背景与微妙的边框，聚焦时展现渐变光效，提供精致的状态反馈。<br><br>
+                <strong>渐变按钮：</strong> 使用高贵的紫蓝渐变色，配合发光效果和波光掠影的动画，强化按钮的视觉吸引力。<br><br>
+                <strong>链接动效：</strong> "忘记密码"链接在悬停时出现优雅的渐变下划线动画，提升交互质感。
+            </p>
+        </div>
+        
+        <div class="explanation-section">
+            <h3 class="explanation-subheading">可用性考虑</h3>
+            <p class="explanation-text">
+                尽管采用了高端视觉设计，界面仍然保持了清晰的视觉层次和直观的操作逻辑。输入区域与按钮尺寸适中便于触控，视觉反馈及时清晰，表单元素之间有充分的间距，确保在奢华体验的同时不牺牲实用性。
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // 输入框焦点效果
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+        
+        // 登录按钮效果
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.addEventListener('click', function() {
+            this.innerHTML = '验证中...';
+            this.style.background = 'linear-gradient(45deg, #3a89e9, #6a11cb)';
+            
+            setTimeout(() => {
+                this.innerHTML = '验证成功';
+                this.style.background = 'linear-gradient(45deg, #0a8a0a, #00cc00)';
+                
+                setTimeout(() => {
+                    this.innerHTML = '登录';
+                    this.style.background = 'linear-gradient(45deg, #6a11cb, #2575fc)';
+                }, 2000);
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 
