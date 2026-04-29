@@ -11,6 +11,16 @@
 			<view class="back-button" @click="handleBack">
 				<view class="back-icon"></view>
 			</view>
+
+			<!-- 游客登录提示 banner -->
+			<view class="tourist-tip" v-if="showTouristTip">
+				<text class="tourist-tip-icon">💡</text>
+				<view class="tourist-tip-body">
+					<text class="tourist-tip-title">短信注册暂未完善</text>
+					<text class="tourist-tip-desc">建议直接使用「游客登录」体验全部功能，如需正式账号可联系我们获取内测资格。</text>
+				</view>
+				<text class="tourist-tip-close" @click="showTouristTip = false">×</text>
+			</view>
 			
 			<!-- 登录logo -->
 			<view class="register-logo">
@@ -47,16 +57,38 @@
 			<view class="input-group verification-group" :class="{ focused: isFocused.smsCode, error: smsCodeError }">
 				<input 
 					type="text" 
-					placeholder="验证码" 
+					placeholder="短信验证码" 
 					placeholder-class="placeholder"
 					v-model="formData.smsCode"
 					@focus="handleFocus('smsCode')"
-					@blur="validateSmsCode"
+					@blur="handleBlur('smsCode')"
 				/>
-				<view class="get-code-btn" @click="getSmsCode" :class="{ disabled: countDown > 0 }">
-					<text>{{ countDown > 0 ? `${countDown}秒后重试` : '获取验证码' }}</text>
+				<view class="sms-button" @click="handleGetSmsCode" :class="{ disabled: smsButtonDisabled }">
+					<text>{{ smsButtonText }}</text>
 				</view>
 				<view class="input-tip" v-if="smsCodeError">{{ smsCodeError }}</view>
+			</view>
+			
+			<!-- 图形验证码输入框 -->
+			<view class="input-group captcha-group" :class="{ focused: isFocused.captcha }">
+				<input 
+					type="text" 
+					placeholder="图形验证码" 
+					placeholder-class="placeholder"
+					v-model="formData.captcha"
+					@focus="handleFocus('captcha')"
+					@blur="handleBlur('captcha')"
+				/>
+				<view class="captcha-wrapper" @click="refreshCaptcha">
+					<image 
+						class="captcha-image" 
+						:src="captchaImage" 
+						mode="aspectFit"
+					></image>
+					<view class="captcha-refresh">
+						<text>点击刷新</text>
+					</view>
+				</view>
 			</view>
 			
 			<view class="input-group" :class="{ focused: isFocused.password, error: passwordError }">
@@ -95,6 +127,10 @@
 				<text v-else>{{ registerStatus }}</text>
 			</button>
 			
+			<view class="form-error" v-if="serverError">
+				<text>{{ serverError }}</text>
+			</view>
+			
 			<!-- 已有账号 -->
 			<view class="login-link">
 				<text @click="handleToLogin">已有账号？去登录</text>
@@ -104,25 +140,32 @@
 </template>
 
 <script setup>
-import { ref, reactive, onUnmounted } from 'vue';
+import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import API_URL from '@/utils/api';
+import { hashPassword } from '@/utils/crypto';
+
+// 游客提示
+const showTouristTip = ref(false);
+let tipTimer = null;
 
 // 表单数据
 const formData = reactive({
 	phone: '',
 	username: '',
+	smsCode: '',
 	password: '',
 	confirmPassword: '',
-	smsCode: ''
+	captcha: ''
 });
 
 // 输入框焦点状态
 const isFocused = reactive({
 	phone: false,
 	username: false,
+	smsCode: false,
 	password: false,
 	confirmPassword: false,
-	smsCode: false
+	captcha: false
 });
 
 // 错误提示信息
@@ -141,6 +184,29 @@ const passwordVisible = reactive({
 // 验证码倒计时
 const countDown = ref(0);
 const timer = ref(null);
+
+// 短信验证码按钮状态
+const smsButtonDisabled = ref(false);
+const smsButtonText = ref('获取验证码');
+
+// 服务端错误信息
+const serverError = ref('');
+const setServerError = (message, showToast = true) => {
+	serverError.value = message;
+	if (showToast && message) {
+		uni.showToast({
+			title: message,
+			icon: 'none'
+		});
+	}
+};
+const clearServerError = () => {
+	serverError.value = '';
+};
+
+// 验证码数据
+const captchaImage = ref('');
+const captchaId = ref('');
 
 // 切换密码可见性
 const togglePasswordVisibility = (field) => {
@@ -255,7 +321,9 @@ const validateConfirmPassword = () => {
 
 // 返回上一页
 const handleBack = () => {
-	uni.navigateBack();
+	uni.navigateTo({
+		url: '/pages/login/login'
+	});
 };
 
 // 跳转到登录页
@@ -265,54 +333,23 @@ const handleToLogin = () => {
 	});
 };
 
-// 获取短信验证码
-const getSmsCode = () => {
-	// 验证手机号
-	if (!validatePhone()) {
-		return;
-	}
-	
-	// 如果倒计时大于0，不执行操作
-	if (countDown.value > 0) return;
-	
-	// 显示加载提示
-	uni.showLoading({
-		title: '发送中...'
-	});
-	
-	// 调用获取验证码接口
+// 获取验证码
+const refreshCaptcha = () => {
 	uni.request({
-		url: API_URL.getSmsCode,
-		method: 'POST',
-		data: {
-			phone: formData.phone
-		},
+		url: API_URL.captcha,
+		method: 'GET',
 		success: (res) => {
-			uni.hideLoading();
-			if (res.data.code === 200) {
-				// 开始倒计时
-				countDown.value = 60;
-				
-				timer.value = setInterval(() => {
-					countDown.value--;
-					if (countDown.value <= 0) {
-						clearInterval(timer.value);
-					}
-				}, 1000);
-				
-				uni.showToast({
-					title: '验证码已发送',
-					icon: 'success'
-				});
+			if (res.data.code === 200 && res.data.data) {
+				captchaImage.value = res.data.data.image;
+				captchaId.value = res.data.data.captchaId;
 			} else {
 				uni.showToast({
-					title: res.data.message || '发送失败',
+					title: '获取验证码失败',
 					icon: 'none'
 				});
 			}
 		},
 		fail: () => {
-			uni.hideLoading();
 			uni.showToast({
 				title: '网络错误，请稍后重试',
 				icon: 'none'
@@ -321,15 +358,86 @@ const getSmsCode = () => {
 	});
 };
 
-// 在组件卸载时清除定时器
+// 获取短信验证码
+const handleGetSmsCode = () => {
+	if (smsButtonDisabled.value) return;
+	clearServerError();
+	
+	// 验证手机号
+	if (!validatePhone()) {
+		return;
+	}
+	
+	// 验证图形验证码
+	if (!formData.captcha) {
+		setServerError('请输入图形验证码');
+		return;
+	}
+	
+	// 开始倒计时
+	smsButtonDisabled.value = true;
+	let countdown = 60;
+	smsButtonText.value = `${countdown}秒后重试`;
+	
+	const timer = setInterval(() => {
+		countdown--;
+		smsButtonText.value = `${countdown}秒后重试`;
+		
+		if (countdown <= 0) {
+			clearInterval(timer);
+			smsButtonDisabled.value = false;
+			smsButtonText.value = '获取验证码';
+		}
+	}, 1000);
+	
+	// 调用获取短信验证码接口
+	uni.request({
+		url: API_URL.getSmsCode,
+		method: 'POST',
+		data: {
+			phone: formData.phone,
+			captcha: formData.captcha,
+			captchaId: captchaId.value
+		},
+		success: (res) => {
+			if (res.data.code !== 200) {
+				// 请求失败时刷新验证码
+				refreshCaptcha();
+				formData.captcha = '';
+				setServerError(res.data.message || '获取验证码失败');
+			}
+		},
+		fail: () => {
+			// 请求失败时刷新验证码
+			refreshCaptcha();
+			formData.captcha = '';
+			setServerError('网络错误，请稍后重试');
+		}
+	});
+};
+
+// 页面加载时获取验证码并显示游客提示
+onMounted(() => {
+	refreshCaptcha();
+	showTouristTip.value = true;
+	tipTimer = setTimeout(() => {
+		showTouristTip.value = false;
+	}, 30000);
+});
+
+// 组件卸载时清除定时器
 onUnmounted(() => {
 	if (timer.value) {
 		clearInterval(timer.value);
 	}
+	if (tipTimer) {
+		clearTimeout(tipTimer);
+	}
 });
 
 // 处理注册
-const handleRegister = () => {
+const handleRegister = async () => {
+	clearServerError();
 	// 表单验证
 	const isPhoneValid = validatePhone();
 	const isUsernameValid = validateUsername();
@@ -341,21 +449,33 @@ const handleRegister = () => {
 		return;
 	}
 	
+	if (!formData.captcha) {
+		setServerError('请输入图形验证码');
+		return;
+	}
+	
 	loading.value = true;
 	registerStatus.value = '注册中...';
 	
-	// 调用注册接口
-	uni.request({
-		url: API_URL.register,
-		method: 'POST',
-		data: {
-			phone: formData.phone,
-			username: formData.username,
-			code: formData.smsCode,
-			password: formData.password
-		},
+	try {
+		// 对密码进行SHA-256哈希加密
+		const hashedPassword = await hashPassword(formData.password);
+		
+		// 调用注册接口
+		uni.request({
+			url: API_URL.register,
+			method: 'POST',
+			data: {
+				phone: formData.phone,
+				username: formData.username,
+				code: formData.smsCode,
+				password: hashedPassword,
+				captcha: formData.captcha,
+				captchaId: captchaId.value
+			},
 		success: (res) => {
 			if (res.data.code === 200) {
+				clearServerError();
 				registerStatus.value = '注册成功';
 				
 				setTimeout(() => {
@@ -368,20 +488,25 @@ const handleRegister = () => {
 				}, 1000);
 			} else {
 				loading.value = false;
-				uni.showToast({
-					title: res.data.message || '注册失败',
-					icon: 'none'
-				});
+				// 注册失败时刷新验证码
+				refreshCaptcha();
+				formData.captcha = '';
+				setServerError(res.data.message || '注册失败');
 			}
 		},
 		fail: () => {
 			loading.value = false;
-			uni.showToast({
-				title: '网络错误，请稍后重试',
-				icon: 'none'
-			});
+			// 请求失败时刷新验证码
+			refreshCaptcha();
+			formData.captcha = '';
+			setServerError('网络错误，请稍后重试');
 		}
 	});
+	} catch (error) {
+		loading.value = false;
+		console.error('密码加密失败:', error);
+		setServerError('密码加密失败，请重试');
+	}
 };
 </script>
 
@@ -558,7 +683,7 @@ const handleRegister = () => {
 // 输入框组
 .input-group {
 	position: relative;
-	width: 100%;
+	width: 80%;
 	margin-bottom: 20px;
 	
 	&::before {
@@ -705,6 +830,19 @@ const handleRegister = () => {
 	}
 }
 
+.form-error {
+	width: 100%;
+	padding: 10px 12px;
+	margin-top: 12px;
+	background: rgba(255, 99, 71, 0.15);
+	border: 1px solid rgba(255, 99, 71, 0.35);
+	border-radius: 8px;
+	color: #ffb3b3;
+	font-size: 13px;
+	line-height: 1.4;
+	text-align: left;
+}
+
 @keyframes shine {
 	0% { left: -100%; }
 	100% { left: 100%; }
@@ -777,5 +915,111 @@ const handleRegister = () => {
 			cursor: not-allowed;
 		}
 	}
+}
+
+// 验证码输入框组
+.captcha-group {
+	display: flex;
+	align-items: center;
+	
+	input {
+		flex: 1;
+		padding-right: 120px; // 为验证码图片留出空间
+	}
+	
+	.captcha-wrapper {
+		position: absolute;
+		right: 10px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 100px;
+		height: 40px;
+		border-radius: 4px;
+		cursor: pointer;
+		overflow: hidden;
+		background: #fff;
+		
+		.captcha-image {
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+		
+		.captcha-refresh {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: rgba(0, 0, 0, 0.5);
+			text-align: center;
+			padding: 2px 0;
+			
+			text {
+				color: #fff;
+				font-size: 12px;
+			}
+		}
+		
+		&:active {
+			opacity: 0.8;
+		}
+	}
+}
+
+.tourist-tip {
+	width: 100%;
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 12px 14px;
+	margin-bottom: 20px;
+	background: rgba(255, 180, 0, 0.1);
+	border: 1px solid rgba(255, 180, 0, 0.3);
+	border-radius: 10px;
+	box-sizing: border-box;
+	animation: tipFadeIn 0.4s ease;
+
+	.tourist-tip-icon {
+		font-size: 18px;
+		flex-shrink: 0;
+		margin-top: 1px;
+	}
+
+	.tourist-tip-body {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+
+		.tourist-tip-title {
+			font-size: 13px;
+			font-weight: 600;
+			color: #fbbf24;
+		}
+
+		.tourist-tip-desc {
+			font-size: 12px;
+			color: rgba(255, 255, 255, 0.55);
+			line-height: 1.5;
+		}
+	}
+
+	.tourist-tip-close {
+		font-size: 18px;
+		color: rgba(255, 255, 255, 0.35);
+		cursor: pointer;
+		flex-shrink: 0;
+		line-height: 1;
+		padding: 0 2px;
+
+		&:active {
+			color: rgba(255, 255, 255, 0.7);
+		}
+	}
+}
+
+@keyframes tipFadeIn {
+	from { opacity: 0; transform: translateY(-8px); }
+	to   { opacity: 1; transform: translateY(0); }
 }
 </style> 

@@ -1,6 +1,13 @@
 {
 	"pages": [
 		{
+			"path": "pages/home/home",
+			"style": {
+				"navigationBarTitleText": "ChatAI 智能体验",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "登录",
@@ -15,16 +22,79 @@
 			}
 		},
 		{
-			"path": "pages/home/home",
+			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "AI体验",
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/chat/chat",
+			"style": {
+				"navigationBarTitleText": "聊天",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/index/index",
+			"path": "pages/chatOne/chatOne",
 			"style": {
-				"navigationBarTitleText": "首页"
+				"navigationBarTitleText": "单聊",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/friend/friend",
+			"style": {
+				"navigationBarTitleText": "好友",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/tools/tools",
+			"style": {
+				"navigationBarTitleText": "AI工具聚",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/aiChat/aiChat",
+			"style": {
+				"navigationBarTitleText": "AI 智能助手",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/aiImage/aiImage",
+			"style": {
+				"navigationBarTitleText": "AI 绘图",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/news/news",
+			"style": {
+				"navigationBarTitleText": "全球新闻",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/roadmap/roadmap",
+			"style": {
+				"navigationBarTitleText": "Agent 学习路线",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/weixin/weixin",
+			"style": {
+				"navigationBarTitleText": "微信 Bot",
+				"navigationStyle": "custom"
 			}
 		}
 	],
@@ -35,18 +105,22 @@
 		"backgroundColor": "#F8F8F8"
 	},
 	"tabBar": {
-		"color": "#999",
-		"selectedColor": "#6a11cb",
-		"backgroundColor": "#fff",
-		"borderStyle": "black",
+		"color": "rgba(255, 255, 255, 0.45)",
+		"selectedColor": "#a78bfa",
+		"backgroundColor": "#1a1a1a",
+		"borderStyle": "white",
 		"list": [
 			{
 				"pagePath": "pages/home/home",
-				"text": "AI体验"
+				"text": "首页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
 			},
 			{
-				"pagePath": "pages/index/index",
-				"text": "我的"
+				"pagePath": "pages/profile/profile",
+				"text": "我的",
+				"iconPath": "static/tabbar/ai.png",
+				"selectedIconPath": "static/tabbar/ai-active.png"
 			}
 		]
 	}

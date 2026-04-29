@@ -1,0 +1,23 @@
+{
+  "name": "AI聊天体验",
+  "short_name": "AI聊天",
+  "description": "探索前沿AI工具，涵盖写作、图像、音视频、办公、编程等完整生态",
+  "icons": [
+    {
+      "src": "/static/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}
+

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码块调试工具</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .debug-panel {
+            background: #2d2d2d;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #3d3d3d;
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #4d4d4d;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .panel-content.collapsed {
+            display: none;
+        }
+        
+        .error-item {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-item {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        .success-item {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        .info-item {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        .debug-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .debug-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .code-preview {
+            background: #1e1e1e;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .dom-tree {
+            font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .dom-element {
+            margin-left: 20px;
+            color: #82aaff;
+        }
+        
+        .dom-attribute {
+            color: #c3e88d;
+        }
+        
+        .dom-text {
+            color: #eeffff;
+        }
+        
+        /* 测试代码块样式 - 完全复制自aiChat.vue */
+        .md-code-block {
+            background: #1e1e1e !important;
+            border: 1px solid #3d3d3d !important;
+            border-radius: 8px !important;
+            margin: 16px 0 !important;
+            overflow: hidden !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .md-code-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-bottom: 1px solid #3d3d3d !important;
+            padding: 8px 12px !important;
+            min-height: 36px !important;
+        }
+        
+        .md-code-lang {
+            background: transparent !important;
+            color: #aaa !important;
+            padding: 0 !important;
+            font-size: 12px !important;
+            border: none !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            font-weight: 500 !important;
+            font-family: Monaco, Menlo, Consolas, "Courier New", monospace !important;
+        }
+        
+        .md-code-copy {
+            background: transparent !important;
+            border: none !important;
+            color: #aaa !important;
+            cursor: pointer !important;
+            padding: 6px 8px !important;
+            border-radius: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.2s ease !important;
+            opacity: 0.7 !important;
+            font-size: 12px !important;
+            min-width: 60px !important;
+        }
+        
+        .md-code-copy:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+            opacity: 1 !important;
+            transform: scale(1.05) !important;
+        }
+        
+        .md-code-pre {
+            margin: 0 !important;
+            padding: 16px !important;
+            overflow-x: auto !important;
+            background: #1e1e1e !important;
+        }
+        
+        .md-code {
+            font-family: Monaco, Menlo, Consolas, "Courier New", monospace !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            color: #e6e6e6 !important;
+            white-space: pre !important;
+            display: block !important;
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Highlight.js 样式 */
+        .hljs { background: transparent !important; color: #e6e6e6 !important; }
+        .hljs-keyword { color: #c792ea !important; }
+        .hljs-string { color: #c3e88d !important; }
+        .hljs-number { color: #f78c6c !important; }
+        .hljs-comment { color: #546e7a !important; font-style: italic !important; }
+        .hljs-function .hljs-title { color: #82aaff !important; }
+        .hljs-variable { color: #eeffff !important; }
+        .hljs-type { color: #ffcb6b !important; }
+        .hljs-property { color: #c792ea !important; }
+        .hljs-tag { color: #f07178 !important; }
+        .hljs-operator { color: #89ddff !important; }
+        .hljs-built_in { color: #ffcb6b !important; }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 代码块调试工具</h1>
+        <p>此工具用于检查代码块渲染问题：控制台错误、DOM结构、CSS样式</p>
+        
+        <!-- 控制按钮 -->
+        <div style="margin-bottom: 20px;">
+            <button class="debug-button" onclick="runFullDiagnostic()">🚀 运行完整诊断</button>
+            <button class="debug-button" onclick="checkConsoleErrors()">❌ 检查控制台错误</button>
+            <button class="debug-button" onclick="checkDOMStructure()">🏗️ 检查DOM结构</button>
+            <button class="debug-button" onclick="checkCSSStyles()">🎨 检查CSS样式</button>
+            <button class="debug-button" onclick="testHighlightJS()">✨ 测试Highlight.js</button>
+            <button class="debug-button" onclick="renderTestCodeBlock()">📝 渲染测试代码块</button>
+            <button class="debug-button" onclick="clearResults()">🧹 清除结果</button>
+        </div>
+        
+        <!-- 控制台错误面板 -->
+        <div class="debug-panel">
+            <div class="panel-header" onclick="togglePanel('console-panel')">
+                <span>❌ 控制台错误检查</span>
+                <span id="console-toggle">▼</span>
+            </div>
+            <div class="panel-content" id="console-panel">
+                <div id="console-results">点击"检查控制台错误"开始检查...</div>
+            </div>
+        </div>
+        
+        <!-- DOM结构面板 -->
+        <div class="debug-panel">
+            <div class="panel-header" onclick="togglePanel('dom-panel')">
+                <span>🏗️ DOM结构检查</span>
+                <span id="dom-toggle">▼</span>
+            </div>
+            <div class="panel-content" id="dom-panel">
+                <div id="dom-results">点击"检查DOM结构"开始检查...</div>
+            </div>
+        </div>
+        
+        <!-- CSS样式面板 -->
+        <div class="debug-panel">
+            <div class="panel-header" onclick="togglePanel('css-panel')">
+                <span>🎨 CSS样式检查</span>
+                <span id="css-toggle">▼</span>
+            </div>
+            <div class="panel-content" id="css-panel">
+                <div id="css-results">点击"检查CSS样式"开始检查...</div>
+            </div>
+        </div>
+        
+        <!-- Highlight.js测试面板 -->
+        <div class="debug-panel">
+            <div class="panel-header" onclick="togglePanel('highlight-panel')">
+                <span>✨ Highlight.js测试</span>
+                <span id="highlight-toggle">▼</span>
+            </div>
+            <div class="panel-content" id="highlight-panel">
+                <div id="highlight-results">点击"测试Highlight.js"开始测试...</div>
+            </div>
+        </div>
+        
+        <!-- 测试代码块面板 -->
+        <div class="debug-panel">
+            <div class="panel-header" onclick="togglePanel('test-panel')">
+                <span>📝 测试代码块</span>
+                <span id="test-toggle">▼</span>
+            </div>
+            <div class="panel-content" id="test-panel">
+                <div id="test-results">点击"渲染测试代码块"开始测试...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局错误收集
+        let consoleErrors = [];
+        let consoleWarnings = [];
+        let consoleInfo = [];
+        
+        // 重写console方法来捕获错误
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalLog = console.log;
+        
+        console.error = function(...args) {
+            consoleErrors.push({
+                type: 'error',
+                message: args.join(' '),
+                timestamp: new Date().toISOString(),
+                stack: new Error().stack
+            });
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            consoleWarnings.push({
+                type: 'warning',
+                message: args.join(' '),
+                timestamp: new Date().toISOString()
+            });
+            originalWarn.apply(console, args);
+        };
+        
+        console.log = function(...args) {
+            consoleInfo.push({
+                type: 'info',
+                message: args.join(' '),
+                timestamp: new Date().toISOString()
+            });
+            originalLog.apply(console, args);
+        };
+        
+        // 捕获未处理的错误
+        window.addEventListener('error', (event) => {
+            consoleErrors.push({
+                type: 'error',
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                timestamp: new Date().toISOString(),
+                stack: event.error ? event.error.stack : 'No stack trace'
+            });
+        });
+        
+        // 捕获Promise拒绝
+        window.addEventListener('unhandledrejection', (event) => {
+            consoleErrors.push({
+                type: 'promise-rejection',
+                message: event.reason,
+                timestamp: new Date().toISOString()
+            });
+        });
+        
+        // 面板切换
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const toggle = document.getElementById(panelId.replace('-panel', '-toggle'));
+            
+            if (panel.classList.contains('collapsed')) {
+                panel.classList.remove('collapsed');
+                toggle.textContent = '▼';
+            } else {
+                panel.classList.add('collapsed');
+                toggle.textContent = '▶';
+            }
+        }
+        
+        // 运行完整诊断
+        function runFullDiagnostic() {
+            console.log('🚀 开始运行完整诊断...');
+            
+            checkConsoleErrors();
+            setTimeout(() => checkDOMStructure(), 100);
+            setTimeout(() => checkCSSStyles(), 200);
+            setTimeout(() => testHighlightJS(), 300);
+            setTimeout(() => renderTestCodeBlock(), 400);
+            
+            console.log('✅ 完整诊断完成');
+        }
+        
+        // 检查控制台错误
+        function checkConsoleErrors() {
+            const resultsDiv = document.getElementById('console-results');
+            let html = '<h4>控制台错误检查结果</h4>';
+            
+            // 显示错误
+            if (consoleErrors.length > 0) {
+                html += `<div class="error-item"><strong>发现 ${consoleErrors.length} 个错误：</strong></div>`;
+                consoleErrors.forEach((error, index) => {
+                    html += `<div class="error-item">
+                        <strong>错误 ${index + 1}:</strong> ${error.message}<br>
+                        <small>时间: ${error.timestamp}</small><br>
+                        ${error.filename ? `<small>文件: ${error.filename}:${error.lineno}:${error.colno}</small><br>` : ''}
+                        ${error.stack ? `<details><summary>堆栈跟踪</summary><pre>${error.stack}</pre></details>` : ''}
+                    </div>`;
+                });
+            } else {
+                html += '<div class="success-item">✅ 没有发现控制台错误</div>';
+            }
+            
+            // 显示警告
+            if (consoleWarnings.length > 0) {
+                html += `<div class="warning-item"><strong>发现 ${consoleWarnings.length} 个警告：</strong></div>`;
+                consoleWarnings.slice(-5).forEach((warning, index) => {
+                    html += `<div class="warning-item">
+                        <strong>警告 ${index + 1}:</strong> ${warning.message}<br>
+                        <small>时间: ${warning.timestamp}</small>
+                    </div>`;
+                });
+            }
+            
+            // 检查特定的highlight.js相关错误
+            const highlightErrors = consoleErrors.filter(error => 
+                error.message.toLowerCase().includes('highlight') ||
+                error.message.toLowerCase().includes('hljs') ||
+                error.message.toLowerCase().includes('marked')
+            );
+            
+            if (highlightErrors.length > 0) {
+                html += '<div class="error-item"><strong>🔍 发现Highlight.js相关错误：</strong></div>';
+                highlightErrors.forEach(error => {
+                    html += `<div class="error-item">${error.message}</div>`;
+                });
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 检查DOM结构
+        function checkDOMStructure() {
+            const resultsDiv = document.getElementById('dom-results');
+            let html = '<h4>DOM结构检查结果</h4>';
+            
+            // 检查代码块元素
+            const codeBlocks = document.querySelectorAll('.md-code-block');
+            html += `<div class="info-item">找到 ${codeBlocks.length} 个 .md-code-block 元素</div>`;
+            
+            if (codeBlocks.length > 0) {
+                codeBlocks.forEach((block, index) => {
+                    html += `<div class="info-item"><strong>代码块 ${index + 1}:</strong></div>`;
+                    
+                    // 检查头部
+                    const header = block.querySelector('.md-code-header');
+                    html += header ? 
+                        '<div class="success-item">✅ 找到 .md-code-header</div>' : 
+                        '<div class="error-item">❌ 缺少 .md-code-header</div>';
+                    
+                    // 检查语言标签
+                    const lang = block.querySelector('.md-code-lang');
+                    html += lang ? 
+                        `<div class="success-item">✅ 找到 .md-code-lang: "${lang.textContent}"</div>` : 
+                        '<div class="error-item">❌ 缺少 .md-code-lang</div>';
+                    
+                    // 检查复制按钮
+                    const copyBtn = block.querySelector('.md-code-copy');
+                    html += copyBtn ? 
+                        '<div class="success-item">✅ 找到 .md-code-copy</div>' : 
+                        '<div class="error-item">❌ 缺少 .md-code-copy</div>';
+                    
+                    // 检查代码内容
+                    const code = block.querySelector('.md-code');
+                    html += code ? 
+                        `<div class="success-item">✅ 找到 .md-code (ID: ${code.id || '无ID'})</div>` : 
+                        '<div class="error-item">❌ 缺少 .md-code</div>';
+                    
+                    // 检查onclick事件
+                    if (copyBtn) {
+                        html += copyBtn.onclick ? 
+                            '<div class="success-item">✅ 复制按钮有onclick事件</div>' : 
+                            '<div class="error-item">❌ 复制按钮缺少onclick事件</div>';
+                    }
+                    
+                    // 显示DOM结构
+                    html += '<div class="code-preview">' + escapeHtml(block.outerHTML.substring(0, 500)) + '...</div>';
+                });
+            } else {
+                html += '<div class="warning-item">⚠️ 没有找到代码块，请先渲染测试代码块</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 检查CSS样式
+        function checkCSSStyles() {
+            const resultsDiv = document.getElementById('css-results');
+            let html = '<h4>CSS样式检查结果</h4>';
+            
+            // 检查关键CSS类是否存在
+            const cssClasses = [
+                '.md-code-block',
+                '.md-code-header', 
+                '.md-code-lang',
+                '.md-code-copy',
+                '.md-code-pre',
+                '.md-code'
+            ];
+            
+            cssClasses.forEach(className => {
+                const elements = document.querySelectorAll(className);
+                if (elements.length > 0) {
+                    const element = elements[0];
+                    const styles = window.getComputedStyle(element);
+                    
+                    html += `<div class="success-item">✅ ${className} (${elements.length}个元素)</div>`;
+                    
+                    // 检查关键样式
+                    if (className === '.md-code-block') {
+                        html += `<div class="info-item">背景色: ${styles.backgroundColor}</div>`;
+                        html += `<div class="info-item">边框: ${styles.border}</div>`;
+                        html += `<div class="info-item">边框半径: ${styles.borderRadius}</div>`;
+                    }
+                    
+                    if (className === '.md-code-copy') {
+                        html += `<div class="info-item">光标: ${styles.cursor}</div>`;
+                        html += `<div class="info-item">显示: ${styles.display}</div>`;
+                        html += `<div class="info-item">颜色: ${styles.color}</div>`;
+                    }
+                } else {
+                    html += `<div class="error-item">❌ ${className} 未找到元素</div>`;
+                }
+            });
+            
+            // 检查highlight.js样式
+            const hljs = document.querySelector('.hljs');
+            if (hljs) {
+                const styles = window.getComputedStyle(hljs);
+                html += '<div class="success-item">✅ 找到 .hljs 元素</div>';
+                html += `<div class="info-item">颜色: ${styles.color}</div>`;
+                html += `<div class="info-item">背景: ${styles.backgroundColor}</div>`;
+            } else {
+                html += '<div class="warning-item">⚠️ 未找到 .hljs 元素</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 测试Highlight.js
+        function testHighlightJS() {
+            const resultsDiv = document.getElementById('highlight-results');
+            let html = '<h4>Highlight.js测试结果</h4>';
+            
+            // 检查highlight.js是否加载
+            if (typeof hljs !== 'undefined') {
+                html += '<div class="success-item">✅ highlight.js 已加载</div>';
+                
+                // 检查注册的语言
+                try {
+                    const languages = hljs.listLanguages();
+                    html += `<div class="success-item">✅ 已注册 ${languages.length} 种语言</div>`;
+                    html += `<div class="info-item">语言列表: ${languages.join(', ')}</div>`;
+                } catch (e) {
+                    html += `<div class="error-item">❌ 获取语言列表失败: ${e.message}</div>`;
+                }
+                
+                // 测试高亮功能
+                try {
+                    const testCode = 'function test() { return "hello"; }';
+                    const result = hljs.highlight(testCode, { language: 'javascript' });
+                    html += '<div class="success-item">✅ JavaScript高亮测试成功</div>';
+                    html += `<div class="code-preview">${result.value}</div>`;
+                } catch (e) {
+                    html += `<div class="error-item">❌ 高亮测试失败: ${e.message}</div>`;
+                }
+            } else {
+                html += '<div class="error-item">❌ highlight.js 未加载</div>';
+                
+                // 尝试从CDN加载
+                html += '<div class="info-item">尝试从CDN加载highlight.js...</div>';
+                loadHighlightJS().then(() => {
+                    html += '<div class="success-item">✅ 从CDN加载成功</div>';
+                    document.getElementById('highlight-results').innerHTML = html;
+                }).catch(e => {
+                    html += `<div class="error-item">❌ CDN加载失败: ${e.message}</div>`;
+                    document.getElementById('highlight-results').innerHTML = html;
+                });
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 渲染测试代码块
+        function renderTestCodeBlock() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            // 创建测试代码块
+            const testHTML = `
+                <h4>测试代码块渲染</h4>
+                <div class="md-code-block">
+                    <div class="md-code-header">
+                        <span class="md-code-lang">javascript</span>
+                        <button class="md-code-copy" onclick="testCopyFunction('test-code-debug')" title="复制代码">复制</button>
+                    </div>
+                    <pre class="md-code-pre"><code class="md-code hljs" id="test-code-debug">function debugTest() {
+    console.log("这是一个测试函数");
+    const message = "Hello, World!";
+    return message;
+}
+
+// 调用函数
+const result = debugTest();
+console.log(result);</code></pre>
+                </div>
+                
+                <div class="info-item">
+                    <strong>渲染完成！</strong><br>
+                    请检查上方代码块是否正确显示：<br>
+                    • 是否有正确的背景色和边框<br>
+                    • 头部是否显示语言标签和复制按钮<br>
+                    • 代码是否有语法高亮<br>
+                    • 复制按钮是否可点击
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = testHTML;
+            
+            // 尝试应用语法高亮
+            setTimeout(() => {
+                const codeElement = document.getElementById('test-code-debug');
+                if (codeElement && typeof hljs !== 'undefined') {
+                    try {
+                        hljs.highlightElement(codeElement);
+                        console.log('✅ 语法高亮应用成功');
+                    } catch (e) {
+                        console.error('❌ 语法高亮应用失败:', e);
+                    }
+                }
+            }, 100);
+        }
+        
+        // 测试复制功能
+        function testCopyFunction(codeId) {
+            try {
+                const codeElement = document.getElementById(codeId);
+                if (!codeElement) {
+                    alert('❌ 找不到代码元素: ' + codeId);
+                    return;
+                }
+                
+                const codeText = codeElement.textContent || codeElement.innerText;
+                
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        alert('✅ 代码已复制到剪贴板！');
+                    }).catch(() => {
+                        fallbackCopy(codeText);
+                    });
+                } else {
+                    fallbackCopy(codeText);
+                }
+            } catch (error) {
+                console.error('复制失败:', error);
+                alert('❌ 复制失败: ' + error.message);
+            }
+        }
+        
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('✅ 代码已复制！（降级方式）');
+            } catch (err) {
+                alert('❌ 复制失败，请手动复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 从CDN加载highlight.js
+        async function loadHighlightJS() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                script.onload = () => {
+                    // 加载常用语言
+                    const languages = ['javascript', 'python', 'css', 'html', 'json'];
+                    Promise.all(languages.map(lang => {
+                        return new Promise((res, rej) => {
+                            const langScript = document.createElement('script');
+                            langScript.src = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/${lang}.min.js`;
+                            langScript.onload = res;
+                            langScript.onerror = rej;
+                            document.head.appendChild(langScript);
+                        });
+                    })).then(resolve).catch(reject);
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // 清除结果
+        function clearResults() {
+            document.getElementById('console-results').innerHTML = '结果已清除...';
+            document.getElementById('dom-results').innerHTML = '结果已清除...';
+            document.getElementById('css-results').innerHTML = '结果已清除...';
+            document.getElementById('highlight-results').innerHTML = '结果已清除...';
+            document.getElementById('test-results').innerHTML = '结果已清除...';
+            
+            // 清除错误记录
+            consoleErrors = [];
+            consoleWarnings = [];
+            consoleInfo = [];
+        }
+        
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 页面加载完成后自动运行基础检查
+        window.addEventListener('load', () => {
+            console.log('🔍 调试工具加载完成');
+            setTimeout(() => {
+                checkConsoleErrors();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
