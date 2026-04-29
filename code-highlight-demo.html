@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增强代码高亮演示</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .feature-card {
+            background: #2d2d2d;
+            border: 1px solid #3d3d3d;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .feature-card .icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-card p {
+            color: #aaa;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .demo-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #2d2d2d;
+            border-radius: 16px;
+            border: 1px solid #3d3d3d;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .demo-title {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .demo-description {
+            color: #aaa;
+            font-size: 16px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        /* 代码块样式 */
+        .md-code-block {
+            background: #1a1a1a !important;
+            border: 1px solid #3d3d3d !important;
+            border-radius: 12px !important;
+            margin: 20px 0 !important;
+            overflow: hidden !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+        }
+        
+        .md-code-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-bottom: 1px solid #3d3d3d !important;
+            padding: 12px 16px !important;
+        }
+        
+        .md-code-lang {
+            font-size: 13px !important;
+            color: #667eea !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            background: rgba(102, 126, 234, 0.2) !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+        }
+        
+        .md-code-copy {
+            background: transparent !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #aaa !important;
+            cursor: pointer !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            font-size: 12px !important;
+            transition: all 0.3s ease !important;
+            opacity: 0.8 !important;
+        }
+        
+        .md-code-copy:hover {
+            background: rgba(102, 126, 234, 0.2) !important;
+            border-color: #667eea !important;
+            color: #667eea !important;
+            opacity: 1 !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        .md-code-copy:active {
+            transform: translateY(0) !important;
+        }
+        
+        .md-code-copy svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        
+        .md-code-pre {
+            margin: 0 !important;
+            padding: 20px !important;
+            overflow-x: auto !important;
+            background: transparent !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: rgba(102, 126, 234, 0.3) transparent !important;
+        }
+        
+        .md-code-pre::-webkit-scrollbar {
+            height: 8px !important;
+        }
+        
+        .md-code-pre::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 4px !important;
+        }
+        
+        .md-code-pre::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3) !important;
+            border-radius: 4px !important;
+        }
+        
+        .md-code-pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.5) !important;
+        }
+        
+        .md-code {
+            font-family: 'JetBrains Mono', Monaco, Menlo, Consolas, monospace !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            color: #e6edf3 !important;
+            white-space: pre !important;
+            display: block !important;
+            background: transparent !important;
+        }
+        
+        /* Highlight.js 增强样式 */
+        .hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 0;
+            color: #e6edf3;
+            background: transparent;
+        }
+        
+        .hljs-comment, .hljs-quote { 
+            color: #8b949e; 
+            font-style: italic; 
+        }
+        
+        .hljs-keyword, .hljs-selector-tag, .hljs-literal { 
+            color: #ff7b72; 
+            font-weight: 600;
+        }
+        
+        .hljs-string, .hljs-regexp { 
+            color: #a5d6ff; 
+        }
+        
+        .hljs-number, .hljs-attr { 
+            color: #79c0ff; 
+            font-weight: 500;
+        }
+        
+        .hljs-title, .hljs-function .hljs-title { 
+            color: #d2a8ff; 
+            font-weight: 600;
+        }
+        
+        .hljs-built_in, .hljs-class .hljs-title { 
+            color: #ffa657; 
+            font-weight: 500;
+        }
+        
+        .hljs-tag .hljs-name { 
+            color: #7ee787; 
+        }
+        
+        .hljs-variable, .hljs-template-variable {
+            color: #ffa657;
+        }
+        
+        .hljs-type {
+            color: #79c0ff;
+            font-weight: 500;
+        }
+        
+        .hljs-symbol, .hljs-bullet {
+            color: #d2a8ff;
+        }
+        
+        .copy-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-item {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 增强代码高亮系统</h1>
+        <p>为 AI Chat 应用提供专业级代码展示体验</p>
+    </div>
+    
+    <div class="features">
+        <div class="feature-card">
+            <span class="icon">🚀</span>
+            <h3>一键复制</h3>
+            <p>点击复制按钮即可复制完整代码</p>
+        </div>
+        <div class="feature-card">
+            <span class="icon">🎯</span>
+            <h3>语言识别</h3>
+            <p>自动识别并高亮 20+ 种编程语言</p>
+        </div>
+        <div class="feature-card">
+            <span class="icon">🎨</span>
+            <h3>美观主题</h3>
+            <p>GitHub Dark 风格的专业代码主题</p>
+        </div>
+        <div class="feature-card">
+            <span class="icon">📱</span>
+            <h3>响应式设计</h3>
+            <p>完美适配各种屏幕尺寸</p>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-number">20+</span>
+            <span class="stat-label">支持语言</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">语法高亮</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">0.1s</span>
+            <span class="stat-label">渲染速度</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">∞</span>
+            <span class="stat-label">代码长度</span>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <div class="demo-title">
+            🔥 Go 语言示例
+        </div>
+        <div class="demo-description">
+            展示 Go 语言的语法高亮效果，包括包声明、导入语句、函数定义、变量声明等。
+        </div>
+        <div id="go-demo"></div>
+    </div>
+    
+    <div class="demo-section">
+        <div class="demo-title">
+            ⚡ TypeScript 高级特性
+        </div>
+        <div class="demo-description">
+            演示 TypeScript 的类型系统、泛型、装饰器等高级语法的高亮效果。
+        </div>
+        <div id="ts-demo"></div>
+    </div>
+    
+    <div class="demo-section">
+        <div class="demo-title">
+            🦀 Rust 系统编程
+        </div>
+        <div class="demo-description">
+            展示 Rust 语言的所有权系统、模式匹配、错误处理等特性。
+        </div>
+        <div id="rust-demo"></div>
+    </div>
+    
+    <div class="demo-section">
+        <div class="demo-title">
+            🐍 Python 数据科学
+        </div>
+        <div class="demo-description">
+            演示 Python 在数据科学领域的应用，包括 NumPy、Pandas 等库的使用。
+        </div>
+        <div id="python-demo"></div>
+    </div>
+
+    <script>
+        // 模拟增强的 renderMarkdown 函数
+        function renderMarkdownWithCopy(content) {
+            if (!content) return '';
+            
+            let html = content;
+            
+            // 处理代码块并添加复制功能
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                const language = lang || 'text';
+                const copyId = 'copy-' + Math.random().toString(36).substr(2, 9);
+                const cleanCode = code.trim();
+                
+                return `<div class="md-code-block">
+                    <div class="md-code-header">
+                        <div class="md-code-lang">${language}</div>
+                        <button class="md-code-copy" onclick="copyCodeBlock('${copyId}')" title="复制代码">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            复制
+                        </button>
+                    </div>
+                    <pre class="md-code-pre"><code class="md-code hljs language-${language}" id="${copyId}">${escapeHtml(cleanCode)}</code></pre>
+                </div>`;
+            });
+            
+            // 处理段落
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            
+            // 清理
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p><div/g, '<div');
+            html = html.replace(/<\/div><\/p>/g, '</div>');
+            
+            return html;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 复制代码功能
+        function copyCodeBlock(codeId) {
+            try {
+                const codeElement = document.getElementById(codeId);
+                if (!codeElement) return;
+                
+                const codeText = codeElement.textContent || codeElement.innerText;
+                
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        showCopySuccess();
+                    }).catch(() => {
+                        fallbackCopy(codeText);
+                    });
+                } else {
+                    fallbackCopy(codeText);
+                }
+            } catch (error) {
+                console.error('复制失败:', error);
+            }
+        }
+        
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopySuccess();
+            } catch (err) {
+                console.error('降级复制失败:', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopySuccess() {
+            const notification = document.createElement('div');
+            notification.className = 'copy-success';
+            notification.textContent = '✅ 代码已复制到剪贴板';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 2000);
+        }
+        
+        // 演示数据
+        const demos = {
+            'go-demo': `\`\`\`go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "net/http"
+    "time"
+    
+    "github.com/gorilla/mux"
+)
+
+// User 用户结构体
+type User struct {
+    ID       int64     \`json:"id"\`
+    Name     string    \`json:"name"\`
+    Email    string    \`json:"email"\`
+    Created  time.Time \`json:"created"\`
+}
+
+// UserService 用户服务接口
+type UserService interface {
+    CreateUser(ctx context.Context, user *User) error
+    GetUser(ctx context.Context, id int64) (*User, error)
+    UpdateUser(ctx context.Context, user *User) error
+    DeleteUser(ctx context.Context, id int64) error
+}
+
+// HTTPServer HTTP服务器
+type HTTPServer struct {
+    userService UserService
+    router      *mux.Router
+}
+
+// NewHTTPServer 创建新的HTTP服务器
+func NewHTTPServer(userService UserService) *HTTPServer {
+    server := &HTTPServer{
+        userService: userService,
+        router:      mux.NewRouter(),
+    }
+    
+    server.setupRoutes()
+    return server
+}
+
+func (s *HTTPServer) setupRoutes() {
+    api := s.router.PathPrefix("/api/v1").Subrouter()
+    
+    // 用户相关路由
+    api.HandleFunc("/users", s.createUser).Methods("POST")
+    api.HandleFunc("/users/{id:[0-9]+}", s.getUser).Methods("GET")
+    api.HandleFunc("/users/{id:[0-9]+}", s.updateUser).Methods("PUT")
+    api.HandleFunc("/users/{id:[0-9]+}", s.deleteUser).Methods("DELETE")
+}
+
+func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
+    // 实现用户创建逻辑
+    ctx := r.Context()
+    
+    var user User
+    if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+    
+    if err := s.userService.CreateUser(ctx, &user); err != nil {
+        log.Printf("Failed to create user: %v", err)
+        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(user)
+}
+
+func main() {
+    // 初始化服务
+    userService := NewUserService() // 假设已实现
+    server := NewHTTPServer(userService)
+    
+    // 启动服务器
+    fmt.Println("Server starting on :8080")
+    log.Fatal(http.ListenAndServe(":8080", server.router))
+}
+\`\`\``,
+            
+            'ts-demo': `\`\`\`typescript
+// 高级 TypeScript 特性演示
+
+// 1. 泛型约束和条件类型
+type NonNullable<T> = T extends null | undefined ? never : T;
+
+interface Repository<T extends { id: string | number }> {
+    findById(id: T['id']): Promise<T | null>;
+    create(entity: Omit<T, 'id'>): Promise<T>;
+    update(id: T['id'], updates: Partial<T>): Promise<T>;
+    delete(id: T['id']): Promise<void>;
+}
+
+// 2. 装饰器和元数据
+function Entity(tableName: string) {
+    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+        return class extends constructor {
+            static tableName = tableName;
+        };
+    };
+}
+
+function Column(options?: { primary?: boolean; nullable?: boolean }) {
+    return function (target: any, propertyKey: string) {
+        const columns = Reflect.getMetadata('columns', target) || [];
+        columns.push({ name: propertyKey, ...options });
+        Reflect.defineMetadata('columns', columns, target);
+    };
+}
+
+// 3. 实体类定义
+@Entity('users')
+class User {
+    @Column({ primary: true })
+    id!: string;
+    
+    @Column()
+    name!: string;
+    
+    @Column({ nullable: true })
+    email?: string;
+    
+    @Column()
+    createdAt!: Date;
+    
+    // 计算属性
+    get displayName(): string {
+        return this.email ? \`\${this.name} <\${this.email}>\` : this.name;
+    }
+}
+
+// 4. 高级类型操作
+type UserKeys = keyof User;
+type UserValues = User[UserKeys];
+type RequiredUserFields = Required<Pick<User, 'id' | 'name' | 'createdAt'>>;
+
+// 5. 泛型工厂函数
+function createRepository<T extends { id: string | number }>(
+    entityClass: new () => T
+): Repository<T> {
+    return {
+        async findById(id: T['id']): Promise<T | null> {
+            // 实现查找逻辑
+            const entity = new entityClass();
+            // ... 数据库查询逻辑
+            return entity;
+        },
+        
+        async create(data: Omit<T, 'id'>): Promise<T> {
+            const entity = Object.assign(new entityClass(), data, {
+                id: crypto.randomUUID()
+            });
+            // ... 保存逻辑
+            return entity;
+        },
+        
+        async update(id: T['id'], updates: Partial<T>): Promise<T> {
+            const entity = await this.findById(id);
+            if (!entity) throw new Error('Entity not found');
+            
+            Object.assign(entity, updates);
+            // ... 更新逻辑
+            return entity;
+        },
+        
+        async delete(id: T['id']): Promise<void> {
+            // ... 删除逻辑
+        }
+    };
+}
+
+// 6. 使用示例
+const userRepository = createRepository(User);
+
+async function userService() {
+    // 创建用户
+    const newUser = await userRepository.create({
+        name: 'John Doe',
+        email: 'john@example.com',
+        createdAt: new Date()
+    });
+    
+    console.log(\`Created user: \${newUser.displayName}\`);
+    
+    // 查找用户
+    const foundUser = await userRepository.findById(newUser.id);
+    if (foundUser) {
+        console.log(\`Found user: \${foundUser.displayName}\`);
+    }
+    
+    // 更新用户
+    const updatedUser = await userRepository.update(newUser.id, {
+        name: 'Jane Doe'
+    });
+    
+    console.log(\`Updated user: \${updatedUser.displayName}\`);
+}
+
+// 7. 类型守卫和断言
+function isUser(obj: any): obj is User {
+    return obj && 
+           typeof obj.id === 'string' && 
+           typeof obj.name === 'string' &&
+           obj.createdAt instanceof Date;
+}
+
+// 8. 模块声明增强
+declare global {
+    interface Window {
+        userRepository: Repository<User>;
+    }
+}
+
+export { User, Repository, createRepository, userService };
+\`\`\``,
+            
+            'rust-demo': `\`\`\`rust
+// Rust 系统编程示例 - 异步 Web 服务器
+
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+
+// 错误类型定义
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("User not found: {id}")]
+    UserNotFound { id: Uuid },
+    
+    #[error("Validation error: {message}")]
+    ValidationError { message: String },
+    
+    #[error("Database error: {0}")]
+    DatabaseError(#[from] sqlx::Error),
+    
+    #[error("Serialization error: {0}")]
+    SerializationError(#[from] serde_json::Error),
+}
+
+// 用户模型
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateUserRequest {
+    pub name: String,
+    pub email: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserRequest {
+    pub name: Option<String>,
+    pub email: Option<String>,
+}
+
+// 用户仓储 trait
+#[async_trait::async_trait]
+pub trait UserRepository: Send + Sync {
+    async fn create(&self, request: CreateUserRequest) -> Result<User, AppError>;
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, AppError>;
+    async fn update(&self, id: Uuid, request: UpdateUserRequest) -> Result<User, AppError>;
+    async fn delete(&self, id: Uuid) -> Result<(), AppError>;
+    async fn list(&self, limit: Option<usize>) -> Result<Vec<User>, AppError>;
+}
+
+// 内存实现（用于演示）
+pub struct InMemoryUserRepository {
+    users: Arc<RwLock<HashMap<Uuid, User>>>,
+}
+
+impl InMemoryUserRepository {
+    pub fn new() -> Self {
+        Self {
+            users: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl UserRepository for InMemoryUserRepository {
+    async fn create(&self, request: CreateUserRequest) -> Result<User, AppError> {
+        // 验证输入
+        if request.name.trim().is_empty() {
+            return Err(AppError::ValidationError {
+                message: "Name cannot be empty".to_string(),
+            });
+        }
+        
+        if !request.email.contains('@') {
+            return Err(AppError::ValidationError {
+                message: "Invalid email format".to_string(),
+            });
+        }
+        
+        let now = Utc::now();
+        let user = User {
+            id: Uuid::new_v4(),
+            name: request.name,
+            email: request.email,
+            created_at: now,
+            updated_at: now,
+        };
+        
+        let mut users = self.users.write().await;
+        users.insert(user.id, user.clone());
+        
+        Ok(user)
+    }
+    
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, AppError> {
+        let users = self.users.read().await;
+        Ok(users.get(&id).cloned())
+    }
+    
+    async fn update(&self, id: Uuid, request: UpdateUserRequest) -> Result<User, AppError> {
+        let mut users = self.users.write().await;
+        
+        let user = users.get_mut(&id).ok_or(AppError::UserNotFound { id })?;
+        
+        if let Some(name) = request.name {
+            if name.trim().is_empty() {
+                return Err(AppError::ValidationError {
+                    message: "Name cannot be empty".to_string(),
+                });
+            }
+            user.name = name;
+        }
+        
+        if let Some(email) = request.email {
+            if !email.contains('@') {
+                return Err(AppError::ValidationError {
+                    message: "Invalid email format".to_string(),
+                });
+            }
+            user.email = email;
+        }
+        
+        user.updated_at = Utc::now();
+        Ok(user.clone())
+    }
+    
+    async fn delete(&self, id: Uuid) -> Result<(), AppError> {
+        let mut users = self.users.write().await;
+        users.remove(&id).ok_or(AppError::UserNotFound { id })?;
+        Ok(())
+    }
+    
+    async fn list(&self, limit: Option<usize>) -> Result<Vec<User>, AppError> {
+        let users = self.users.read().await;
+        let mut user_list: Vec<User> = users.values().cloned().collect();
+        
+        // 按创建时间排序
+        user_list.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        
+        if let Some(limit) = limit {
+            user_list.truncate(limit);
+        }
+        
+        Ok(user_list)
+    }
+}
+
+// 用户服务
+pub struct UserService {
+    repository: Arc<dyn UserRepository>,
+}
+
+impl UserService {
+    pub fn new(repository: Arc<dyn UserRepository>) -> Self {
+        Self { repository }
+    }
+    
+    pub async fn create_user(&self, request: CreateUserRequest) -> Result<User, AppError> {
+        self.repository.create(request).await
+    }
+    
+    pub async fn get_user(&self, id: Uuid) -> Result<User, AppError> {
+        self.repository
+            .find_by_id(id)
+            .await?
+            .ok_or(AppError::UserNotFound { id })
+    }
+    
+    pub async fn update_user(&self, id: Uuid, request: UpdateUserRequest) -> Result<User, AppError> {
+        self.repository.update(id, request).await
+    }
+    
+    pub async fn delete_user(&self, id: Uuid) -> Result<(), AppError> {
+        self.repository.delete(id).await
+    }
+    
+    pub async fn list_users(&self, limit: Option<usize>) -> Result<Vec<User>, AppError> {
+        self.repository.list(limit).await
+    }
+}
+
+// 主函数
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 初始化日志
+    tracing_subscriber::init();
+    
+    // 创建仓储和服务
+    let repository = Arc::new(InMemoryUserRepository::new());
+    let user_service = Arc::new(UserService::new(repository));
+    
+    // 创建一些测试用户
+    let users = vec![
+        CreateUserRequest {
+            name: "Alice Johnson".to_string(),
+            email: "alice@example.com".to_string(),
+        },
+        CreateUserRequest {
+            name: "Bob Smith".to_string(),
+            email: "bob@example.com".to_string(),
+        },
+    ];
+    
+    for user_request in users {
+        match user_service.create_user(user_request).await {
+            Ok(user) => println!("Created user: {} ({})", user.name, user.id),
+            Err(e) => eprintln!("Failed to create user: {}", e),
+        }
+    }
+    
+    // 列出所有用户
+    match user_service.list_users(Some(10)).await {
+        Ok(users) => {
+            println!("\\nAll users:");
+            for user in users {
+                println!("  {} - {} ({})", user.name, user.email, user.id);
+            }
+        }
+        Err(e) => eprintln!("Failed to list users: {}", e),
+    }
+    
+    Ok(())
+}
+
+// 测试模块
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[tokio::test]
+    async fn test_user_crud_operations() {
+        let repository = Arc::new(InMemoryUserRepository::new());
+        let service = UserService::new(repository);
+        
+        // 测试创建用户
+        let create_request = CreateUserRequest {
+            name: "Test User".to_string(),
+            email: "test@example.com".to_string(),
+        };
+        
+        let user = service.create_user(create_request).await.unwrap();
+        assert_eq!(user.name, "Test User");
+        assert_eq!(user.email, "test@example.com");
+        
+        // 测试获取用户
+        let retrieved_user = service.get_user(user.id).await.unwrap();
+        assert_eq!(retrieved_user.id, user.id);
+        
+        // 测试更新用户
+        let update_request = UpdateUserRequest {
+            name: Some("Updated User".to_string()),
+            email: None,
+        };
+        
+        let updated_user = service.update_user(user.id, update_request).await.unwrap();
+        assert_eq!(updated_user.name, "Updated User");
+        assert_eq!(updated_user.email, "test@example.com");
+        
+        // 测试删除用户
+        service.delete_user(user.id).await.unwrap();
+        
+        // 验证用户已删除
+        let result = service.get_user(user.id).await;
+        assert!(matches!(result, Err(AppError::UserNotFound { .. })));
+    }
+}
+\`\`\``,
+            
+            'python-demo': `\`\`\`python
+"""
+Python 数据科学工具包 - 高级数据分析和机器学习
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from typing import Dict, List, Tuple, Optional, Union
+import warnings
+warnings.filterwarnings('ignore')
+
+class DataAnalyzer:
+    """高级数据分析器"""
+    
+    def __init__(self, data: pd.DataFrame):
+        self.data = data.copy()
+        self.processed_data: Optional[pd.DataFrame] = None
+        self.models: Dict[str, any] = {}
+        self.scalers: Dict[str, StandardScaler] = {}
+        
+    def explore_data(self) -> Dict[str, any]:
+        """数据探索性分析"""
+        exploration = {
+            'shape': self.data.shape,
+            'columns': list(self.data.columns),
+            'dtypes': self.data.dtypes.to_dict(),
+            'missing_values': self.data.isnull().sum().to_dict(),
+            'duplicates': self.data.duplicated().sum(),
+            'memory_usage': self.data.memory_usage(deep=True).sum() / 1024**2  # MB
+        }
+        
+        # 数值列统计
+        numeric_cols = self.data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            exploration['numeric_summary'] = self.data[numeric_cols].describe().to_dict()
+        
+        # 分类列统计
+        categorical_cols = self.data.select_dtypes(include=['object', 'category']).columns
+        if len(categorical_cols) > 0:
+            exploration['categorical_summary'] = {
+                col: self.data[col].value_counts().head().to_dict()
+                for col in categorical_cols
+            }
+        
+        return exploration
+    
+    def clean_data(self, 
+                   drop_duplicates: bool = True,
+                   fill_numeric_na: str = 'median',
+                   fill_categorical_na: str = 'mode') -> 'DataAnalyzer':
+        """数据清洗"""
+        cleaned_data = self.data.copy()
+        
+        # 删除重复值
+        if drop_duplicates:
+            cleaned_data = cleaned_data.drop_duplicates()
+        
+        # 处理数值列缺失值
+        numeric_cols = cleaned_data.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            if cleaned_data[col].isnull().any():
+                if fill_numeric_na == 'median':
+                    cleaned_data[col].fillna(cleaned_data[col].median(), inplace=True)
+                elif fill_numeric_na == 'mean':
+                    cleaned_data[col].fillna(cleaned_data[col].mean(), inplace=True)
+                elif fill_numeric_na == 'zero':
+                    cleaned_data[col].fillna(0, inplace=True)
+        
+        # 处理分类列缺失值
+        categorical_cols = cleaned_data.select_dtypes(include=['object', 'category']).columns
+        for col in categorical_cols:
+            if cleaned_data[col].isnull().any():
+                if fill_categorical_na == 'mode':
+                    mode_value = cleaned_data[col].mode()
+                    if len(mode_value) > 0:
+                        cleaned_data[col].fillna(mode_value[0], inplace=True)
+                elif fill_categorical_na == 'unknown':
+                    cleaned_data[col].fillna('Unknown', inplace=True)
+        
+        self.processed_data = cleaned_data
+        return self
+    
+    def feature_engineering(self, 
+                          target_column: str,
+                          encode_categorical: bool = True,
+                          scale_features: bool = True) -> Tuple[pd.DataFrame, pd.Series]:
+        """特征工程"""
+        if self.processed_data is None:
+            raise ValueError("请先调用 clean_data() 方法")
+        
+        data = self.processed_data.copy()
+        
+        # 分离特征和目标变量
+        if target_column not in data.columns:
+            raise ValueError(f"目标列 '{target_column}' 不存在")
+        
+        X = data.drop(columns=[target_column])
+        y = data[target_column]
+        
+        # 编码分类变量
+        if encode_categorical:
+            categorical_cols = X.select_dtypes(include=['object', 'category']).columns
+            for col in categorical_cols:
+                le = LabelEncoder()
+                X[col] = le.fit_transform(X[col].astype(str))
+        
+        # 特征缩放
+        if scale_features:
+            numeric_cols = X.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) > 0:
+                scaler = StandardScaler()
+                X[numeric_cols] = scaler.fit_transform(X[numeric_cols])
+                self.scalers['features'] = scaler
+        
+        return X, y
+    
+    def train_models(self, 
+                    X: pd.DataFrame, 
+                    y: pd.Series,
+                    test_size: float = 0.2,
+                    random_state: int = 42) -> Dict[str, Dict]:
+        """训练多个机器学习模型"""
+        
+        # 分割数据
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state, stratify=y
+        )
+        
+        # 定义模型
+        models = {
+            'RandomForest': RandomForestClassifier(random_state=random_state),
+            'GradientBoosting': GradientBoostingClassifier(random_state=random_state)
+        }
+        
+        # 超参数网格
+        param_grids = {
+            'RandomForest': {
+                'n_estimators': [100, 200],
+                'max_depth': [10, 20, None],
+                'min_samples_split': [2, 5]
+            },
+            'GradientBoosting': {
+                'n_estimators': [100, 200],
+                'learning_rate': [0.1, 0.01],
+                'max_depth': [3, 5]
+            }
+        }
+        
+        results = {}
+        
+        for model_name, model in models.items():
+            print(f"训练 {model_name}...")
+            
+            # 网格搜索
+            grid_search = GridSearchCV(
+                model, 
+                param_grids[model_name],
+                cv=5,
+                scoring='accuracy',
+                n_jobs=-1
+            )
+            
+            grid_search.fit(X_train, y_train)
+            
+            # 最佳模型预测
+            best_model = grid_search.best_estimator_
+            y_pred = best_model.predict(X_test)
+            y_pred_proba = best_model.predict_proba(X_test)[:, 1] if len(np.unique(y)) == 2 else None
+            
+            # 评估指标
+            results[model_name] = {
+                'model': best_model,
+                'best_params': grid_search.best_params_,
+                'best_score': grid_search.best_score_,
+                'classification_report': classification_report(y_test, y_pred, output_dict=True),
+                'confusion_matrix': confusion_matrix(y_test, y_pred).tolist(),
+                'roc_auc': roc_auc_score(y_test, y_pred_proba) if y_pred_proba is not None else None
+            }
+            
+            # 特征重要性
+            if hasattr(best_model, 'feature_importances_'):
+                feature_importance = pd.DataFrame({
+                    'feature': X.columns,
+                    'importance': best_model.feature_importances_
+                }).sort_values('importance', ascending=False)
+                results[model_name]['feature_importance'] = feature_importance.to_dict('records')
+            
+            self.models[model_name] = best_model
+        
+        return results
+    
+    def visualize_results(self, results: Dict[str, Dict], figsize: Tuple[int, int] = (15, 10)):
+        """可视化结果"""
+        n_models = len(results)
+        fig, axes = plt.subplots(2, n_models, figsize=figsize)
+        
+        if n_models == 1:
+            axes = axes.reshape(-1, 1)
+        
+        for idx, (model_name, result) in enumerate(results.items()):
+            # 混淆矩阵
+            cm = np.array(result['confusion_matrix'])
+            sns.heatmap(cm, annot=True, fmt='d', ax=axes[0, idx], cmap='Blues')
+            axes[0, idx].set_title(f'{model_name} - 混淆矩阵')
+            axes[0, idx].set_xlabel('预测值')
+            axes[0, idx].set_ylabel('真实值')
+            
+            # 特征重要性
+            if 'feature_importance' in result:
+                feature_df = pd.DataFrame(result['feature_importance'])
+                top_features = feature_df.head(10)
+                
+                axes[1, idx].barh(range(len(top_features)), top_features['importance'])
+                axes[1, idx].set_yticks(range(len(top_features)))
+                axes[1, idx].set_yticklabels(top_features['feature'])
+                axes[1, idx].set_title(f'{model_name} - 特征重要性 (Top 10)')
+                axes[1, idx].set_xlabel('重要性')
+        
+        plt.tight_layout()
+        plt.show()
+    
+    def generate_report(self, results: Dict[str, Dict]) -> str:
+        """生成分析报告"""
+        report = []
+        report.append("=" * 60)
+        report.append("机器学习模型分析报告")
+        report.append("=" * 60)
+        
+        # 数据概览
+        exploration = self.explore_data()
+        report.append(f"\\n数据集信息:")
+        report.append(f"  - 样本数量: {exploration['shape'][0]:,}")
+        report.append(f"  - 特征数量: {exploration['shape'][1]:,}")
+        report.append(f"  - 内存使用: {exploration['memory_usage']:.2f} MB")
+        report.append(f"  - 重复值: {exploration['duplicates']:,}")
+        
+        # 模型性能对比
+        report.append(f"\\n模型性能对比:")
+        report.append("-" * 40)
+        
+        for model_name, result in results.items():
+            accuracy = result['classification_report']['accuracy']
+            macro_f1 = result['classification_report']['macro avg']['f1-score']
+            
+            report.append(f"\\n{model_name}:")
+            report.append(f"  - 准确率: {accuracy:.4f}")
+            report.append(f"  - 宏平均F1: {macro_f1:.4f}")
+            report.append(f"  - 交叉验证得分: {result['best_score']:.4f}")
+            
+            if result['roc_auc']:
+                report.append(f"  - ROC AUC: {result['roc_auc']:.4f}")
+            
+            report.append(f"  - 最佳参数: {result['best_params']}")
+        
+        # 推荐
+        best_model = max(results.items(), key=lambda x: x[1]['classification_report']['accuracy'])
+        report.append(f"\\n推荐模型: {best_model[0]} (准确率: {best_model[1]['classification_report']['accuracy']:.4f})")
+        
+        return "\\n".join(report)
+
+# 使用示例
+def main():
+    """主函数 - 演示完整的数据科学工作流"""
+    
+    # 创建示例数据集
+    np.random.seed(42)
+    n_samples = 1000
+    
+    data = pd.DataFrame({
+        'age': np.random.randint(18, 80, n_samples),
+        'income': np.random.normal(50000, 15000, n_samples),
+        'education_years': np.random.randint(8, 20, n_samples),
+        'experience': np.random.randint(0, 40, n_samples),
+        'city': np.random.choice(['北京', '上海', '广州', '深圳'], n_samples),
+        'gender': np.random.choice(['男', '女'], n_samples),
+        'purchased': np.random.choice([0, 1], n_samples, p=[0.6, 0.4])
+    })
+    
+    # 添加一些缺失值
+    missing_indices = np.random.choice(data.index, size=50, replace=False)
+    data.loc[missing_indices, 'income'] = np.nan
+    
+    print("开始数据分析流程...")
+    
+    # 创建分析器
+    analyzer = DataAnalyzer(data)
+    
+    # 数据探索
+    exploration = analyzer.explore_data()
+    print(f"数据集形状: {exploration['shape']}")
+    print(f"缺失值: {exploration['missing_values']}")
+    
+    # 数据清洗和特征工程
+    analyzer.clean_data()
+    X, y = analyzer.feature_engineering(target_column='purchased')
+    
+    print(f"特征工程后的数据形状: {X.shape}")
+    
+    # 训练模型
+    results = analyzer.train_models(X, y)
+    
+    # 生成报告
+    report = analyzer.generate_report(results)
+    print(report)
+    
+    # 可视化结果
+    analyzer.visualize_results(results)
+
+if __name__ == "__main__":
+    main()
+\`\`\``
+        };
+        
+        // 渲染所有演示
+        Object.entries(demos).forEach(([id, content]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = renderMarkdownWithCopy(content);
+            }
+        });
+        
+        // 全局复制函数
+        window.copyCodeBlock = copyCodeBlock;
+    </script>
+</body>
+</html>
