@@ -68,7 +68,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USERNAME }} # 服务器用户名（从 GitHub Secrets 读取）
           key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
           source: "docker-compose.yml"               # 要上传的本地文件路径
-          target: "/deploy/h5/yuchat"              # 服务器上的目标目录
+          target: "/deploy/h5             # 服务器上的目标目录
       
       # 步骤6：通过 SSH 在远程服务器上执行命令（重新加载服务）
       - name: Reload server          # 步骤名称：重新加载服务器
