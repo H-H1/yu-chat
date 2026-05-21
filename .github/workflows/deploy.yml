@@ -25,7 +25,7 @@ jobs:
           
       # 步骤3：安装项目依赖
       - name: Install dependencies   # 步骤名称：安装依赖
-        run: npm ci --omit=optional                # 使用 npm ci 快速严格安装依赖（基于 package-lock.json）
+        run: npm ci --omit=optional --force                # 使用 npm ci 快速严格安装依赖（基于 package-lock.json）
         
       # 步骤4：构建项目（生成部署文件）
       - name: Build project          # 步骤名称：构建项目
