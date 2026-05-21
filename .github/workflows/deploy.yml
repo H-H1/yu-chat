@@ -59,8 +59,17 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
           source: "nginx/conf.d/*"               # 要上传的本地文件路径
           target: "/deploy/h5"              # 服务器上的目标目录
-          strip_components: 3                     # 删除路径前 3 级目录（使文件直接放在 target 下）
-
+          strip_components: 2                     # 删除路径前 3 级目录（使文件直接放在 target 下）
+      
+      - name: Deploy to docker-compose       # 步骤名称：部署到服务器
+        uses: appleboy/scp-action@v0.1.7  # 使用 appleboy 的 SCP 插件（通过 SSH 复制文件）
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}        # 服务器地址（从 GitHub Secrets 读取）
+          username: ${{ secrets.DEPLOY_USERNAME }} # 服务器用户名（从 GitHub Secrets 读取）
+          key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
+          source: "docker-compose.yml"               # 要上传的本地文件路径
+          target: "/deploy/h5"              # 服务器上的目标目录
+      
       # 步骤6：通过 SSH 在远程服务器上执行命令（重新加载服务）
       - name: Reload server          # 步骤名称：重新加载服务器
         uses: appleboy/ssh-action@v1.0.3  # 使用 appleboy 的 SSH 插件（执行远程命令）
