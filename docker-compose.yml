@@ -1,8 +1,17 @@
 services:
-  frontend:
+  yuchat-frontend:
     image: nginx:alpine
     volumes:
       - /deploy/h5:/usr/share/nginx/html:ro  # 挂载这个目录
       - /deploy/h5/nginx.conf:/etc/nginx/nginx.conf:ro # 挂载这个目录
     ports:
       - "80:80"
+    networks:
+      - yuchat_net 
+    restart: always
+networks:
+  yuchat_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
