@@ -22,8 +22,13 @@ jobs:
         uses: actions/setup-node@v4  # 使用 GitHub 官方 setup-node 插件 v4
         with:
           node-version: '22'          # 指定 Node.js 版本为 22
-          
-      # 步骤3：安装项目依赖
+      # 步骤3：安装依赖（使用 pnpm action）
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+        version: 10.32.1  # 或 latest，或具体版本如 8.15.0    
+
+      # 步骤3.1：安装项目依赖
       - name: Install dependencies   # 步骤名称：安装依赖
         run: pnpm install                # 使用 npm ci 快速严格安装依赖（基于 package-lock.json）
         
