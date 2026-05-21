@@ -1,0 +1,68 @@
+name: Deploy to Server  # 工作流名称：部署到服务器
+
+# 触发条件配置
+on:
+  push:
+    branches: [master, main]  # 当推送到 master 或 main 分支时触发
+  workflow_dispatch:         # 允许在 GitHub 网页上手动触发
+
+# 作业配置
+jobs:
+  deploy:                    # 作业唯一标识符
+    runs-on: ubuntu-latest   # 运行环境：最新版 Ubuntu Linux
+    
+    # 执行步骤
+    steps:
+      # 步骤1：检出代码（将仓库代码下载到运行环境）
+      - name: Checkout code   # 步骤名称：检出代码
+        uses: actions/checkout@v4  # 使用 GitHub 官方 checkout 插件 v4 版本
+        
+      # 步骤2：设置 Node.js 环境
+      - name: Setup Node.js   # 步骤名称：设置 Node.js
+        uses: actions/setup-node@v4  # 使用 GitHub 官方 setup-node 插件 v4
+        with:
+          node-version: '22'          # 指定 Node.js 版本为 22
+          
+      # 步骤3：安装项目依赖
+      - name: Install dependencies   # 步骤名称：安装依赖
+        run: npm ci                  # 使用 npm ci 快速严格安装依赖（基于 package-lock.json）
+        
+      # 步骤4：构建项目（生成部署文件）
+      - name: Build project          # 步骤名称：构建项目
+        run: |                       # 执行多个 shell 命令
+          npm run build:h5           # 运行构建 H5 版本的脚本
+          echo "Build completed. Files in dist/build/h5/:"  # 输出构建完成提示
+          ls -la dist/build/h5/      # 列出构建产物文件（便于调试查看）
+        
+      # 步骤5：通过 SCP 将构建产物部署到远程服务器
+      - name: Deploy to server       # 步骤名称：部署到服务器
+        uses: appleboy/scp-action@v0.1.7  # 使用 appleboy 的 SCP 插件（通过 SSH 复制文件）
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}        # 服务器地址（从 GitHub Secrets 读取）
+          username: ${{ secrets.DEPLOY_USERNAME }} # 服务器用户名（从 GitHub Secrets 读取）
+          key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
+          source: "dist/build/h5/*"               # 要上传的本地文件路径
+          target: "/deploy/h5"              # 服务器上的目标目录
+          strip_components: 3                     # 删除路径前 3 级目录（使文件直接放在 target 下）
+
+      # 步骤5.1
+      - name: Deploy to ng       # 步骤名称：部署到服务器
+        uses: appleboy/scp-action@v0.1.7  # 使用 appleboy 的 SCP 插件（通过 SSH 复制文件）
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}        # 服务器地址（从 GitHub Secrets 读取）
+          username: ${{ secrets.DEPLOY_USERNAME }} # 服务器用户名（从 GitHub Secrets 读取）
+          key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
+          source: "nginx/conf.d/*"               # 要上传的本地文件路径
+          target: "/deploy/h5"              # 服务器上的目标目录
+          strip_components: 3                     # 删除路径前 3 级目录（使文件直接放在 target 下）
+
+      # 步骤6：通过 SSH 在远程服务器上执行命令（重新加载服务）
+      - name: Reload server          # 步骤名称：重新加载服务器
+        uses: appleboy/ssh-action@v1.0.3  # 使用 appleboy 的 SSH 插件（执行远程命令）
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}        # 服务器地址（从 GitHub Secrets 读取）
+          username: ${{ secrets.DEPLOY_USERNAME }} # 服务器用户名（从 GitHub Secrets 读取）
+          key: ${{ secrets.DEPLOY_KEY }}           # SSH 私钥（从 GitHub Secrets 读取）
+          script: |                                # 在服务器上执行的命令
+            cd /deploy/h5                  # 进入部署目录
+            docker compose up -d --build          # 重新构建并后台启动 Docker 容器
