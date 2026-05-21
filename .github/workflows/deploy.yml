@@ -26,7 +26,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-        version: 10.32.1  # 或 latest，或具体版本如 8.15.0    
+          version: 10.32.1  # 或 latest，或具体版本如 8.15.0    
 
       # 步骤3.1：安装项目依赖
       - name: Install dependencies   # 步骤名称：安装依赖
