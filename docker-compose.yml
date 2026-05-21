@@ -8,9 +8,9 @@ services:
     ports:
       - "80:80"
     networks:
-      - yuchat_net
+      - yuchat_yuchat_net
     restart: always
 
 networks:
-  yuchat_net:
+  yuchat_yuchat_net:
     external: true
