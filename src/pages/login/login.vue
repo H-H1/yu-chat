@@ -63,6 +63,13 @@
 			<!-- 滑块验证 -->
 			<SliderCaptcha @success="onSliderSuccess" />
 
+			<!-- Turnstile 人机验证 (H5) -->
+			<!-- #ifdef H5 -->
+			<view class="turnstile-container">
+				<view id="turnstile-widget"></view>
+			</view>
+			<!-- #endif -->
+
 			<!-- 错误提示 -->
 			<view class="form-error" v-if="errorMessage">
 				<view class="error-icon">!</view>
@@ -129,6 +136,47 @@ const onSliderSuccess = () => {
 	sliderPassed.value = true;
 };
 
+// Turnstile 人机验证状态
+const turnstileToken = ref('');
+const turnstileWidgetId = ref(null);
+
+// 初始化 Turnstile 小部件
+const initTurnstile = () => {
+	// #ifdef H5
+	if (typeof window !== 'undefined' && window.turnstile) {
+		if (turnstileWidgetId.value !== null) {
+			window.turnstile.remove(turnstileWidgetId.value);
+		}
+		const container = document.getElementById('turnstile-widget');
+		if (container) {
+			turnstileWidgetId.value = window.turnstile.render('#turnstile-widget', {
+				sitekey: '0x4AAAAAADXMHSi0WATAN9zu',
+				theme: 'dark',
+				callback: (token) => {
+					turnstileToken.value = token;
+				},
+				'expired-callback': () => {
+					turnstileToken.value = '';
+				},
+				'error-callback': () => {
+					turnstileToken.value = '';
+				}
+			});
+		}
+	}
+	// #endif
+};
+
+// 重置 Turnstile
+const resetTurnstile = () => {
+	turnstileToken.value = '';
+	// #ifdef H5
+	if (typeof window !== 'undefined' && window.turnstile && turnstileWidgetId.value !== null) {
+		window.turnstile.reset(turnstileWidgetId.value);
+	}
+	// #endif
+};
+
 // 错误提示
 const errorMessage = ref('');
 const setErrorMessage = (message, showToast = true) => {
@@ -184,6 +232,23 @@ const refreshCaptcha = () => {
 onMounted(() => {
 	checkExistingToken();
 	refreshCaptcha();
+
+	// 加载 Turnstile 脚本 (H5)
+	// #ifdef H5
+	if (typeof window !== 'undefined' && !document.getElementById('turnstile-script')) {
+		const script = document.createElement('script');
+		script.id = 'turnstile-script';
+		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+		script.async = true;
+		script.defer = true;
+		script.onload = () => {
+			initTurnstile();
+		};
+		document.head.appendChild(script);
+	} else if (window.turnstile) {
+		initTurnstile();
+	}
+	// #endif
 });
 
 // 切换密码可见性
@@ -210,6 +275,12 @@ const handleLogin = async () => {
 		setErrorMessage('请先完成滑动验证');
 		return;
 	}
+	// #ifdef H5
+	if (!turnstileToken.value) {
+		setErrorMessage('请先完成人机验证');
+		return;
+	}
+	// #endif
 
 	loading.value = true;
 	loginStatus.value = '验证中...';
@@ -224,7 +295,8 @@ const handleLogin = async () => {
 				userName: formData.username,
 				password: hashedPassword,
 				captcha: formData.captcha,
-				captchaId: captchaId.value
+				captchaId: captchaId.value,
+				turnstileToken: turnstileToken.value
 			},
 			success: (res) => {
 				if (res.data.code === 200) {
@@ -268,6 +340,7 @@ const handleLogin = async () => {
 				} else {
 					loading.value = false;
 					refreshCaptcha();
+					resetTurnstile();
 					formData.captcha = '';
 					setErrorMessage(res.data.message || '登录失败');
 				}
@@ -275,12 +348,14 @@ const handleLogin = async () => {
 			fail: () => {
 				loading.value = false;
 				refreshCaptcha();
+				resetTurnstile();
 				formData.captcha = '';
 				setErrorMessage('网络错误，请稍后重试');
 			}
 		});
 	} catch (error) {
 		loading.value = false;
+		resetTurnstile();
 		console.error('密码加密失败:', error);
 		setErrorMessage('密码加密失败，请重试');
 	}
@@ -673,6 +748,18 @@ const handleToRegister = () => {
 			opacity: 0.85;
 			.captcha-refresh-tip { opacity: 1; }
 		}
+	}
+}
+
+// Turnstile 人机验证容器
+.turnstile-container {
+	width: 100%;
+	margin-bottom: 18px;
+	display: flex;
+	justify-content: center;
+
+	#turnstile-widget {
+		min-height: 65px;
 	}
 }
 
