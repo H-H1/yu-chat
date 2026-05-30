@@ -256,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import PaymentService from '@/services/paymentService.js';
 import PurchaseService from '@/services/purchaseService.js';
 import wsService from '@/services/websocket.js';
@@ -648,31 +648,50 @@ const handlePayment = async () => {
 	}
 };
 
+// 支付轮询定时器
+const paymentPollTimer = ref(null);
+
 // 轮询支付状态（支付宝跳转后使用）
 const pollPaymentStatus = (orderId, maxAttempts = 30) => {
+	// 清除之前的轮询（防止重复）
+	if (paymentPollTimer.value) {
+		clearInterval(paymentPollTimer.value);
+		paymentPollTimer.value = null;
+	}
 	let attempts = 0;
-	const timer = setInterval(async () => {
+	paymentPollTimer.value = setInterval(async () => {
 		attempts++;
 		try {
 			const status = await PurchaseService.getPaymentStatus(orderId);
 			if (status === 'completed' || status?.status === 'completed') {
-				clearInterval(timer);
+				clearInterval(paymentPollTimer.value);
+				paymentPollTimer.value = null;
 				uni.showToast({ title: '支付成功', icon: 'success' });
 				closePurchaseModal();
 				await loadUserServiceInfo();
 				await loadOrderList();
 			} else if (status === 'cancelled' || status?.status === 'cancelled') {
-				clearInterval(timer);
+				clearInterval(paymentPollTimer.value);
+				paymentPollTimer.value = null;
 				uni.showToast({ title: '支付已取消', icon: 'none' });
 			}
 		} catch (e) {
 			// 忽略轮询错误
 		}
 		if (attempts >= maxAttempts) {
-			clearInterval(timer);
+			clearInterval(paymentPollTimer.value);
+			paymentPollTimer.value = null;
 		}
 	}, 10000); // 每 10 秒查一次
 };
+
+// 组件卸载时清除支付轮询定时器
+onUnmounted(() => {
+	if (paymentPollTimer.value) {
+		clearInterval(paymentPollTimer.value);
+		paymentPollTimer.value = null;
+	}
+});
 
 // 取消订单
 const cancelOrder = async (orderId) => {
