@@ -179,7 +179,7 @@
 				<view class="chat-interface" v-if="activeMenu === 1">
 					<!-- 消息列表区域 -->
 					<view class="message-list">
-						<view v-for="(message, index) in aiImageMessages" :key="index" 
+						<view v-for="(message, index) in aiImageMessages" :key="message.id" 
 							:class="['message-item', message.isMe ? 'message-mine' : 'message-other']">
 							<!-- 时间戳 - 每组消息的第一条显示 -->
 							<view class="message-time" v-if="shouldShowTime(index, aiImageMessages)">
@@ -260,7 +260,7 @@
 							<text>精选 MCP</text>
 						</view>
 						<view class="mcp-grid">
-							<view class="mcp-card" v-for="(mcp, index) in mcpList" :key="index">
+							<view class="mcp-card" v-for="(mcp, index) in mcpList" :key="mcp.name">
 								<view class="mcp-card-top">
 									<text class="mcp-card-name">{{ mcp.name }}</text>
 									<view class="mcp-card-badges">
@@ -309,7 +309,7 @@
 				<view class="chat-interface" v-if="activeMenu === 4">
 					<!-- 消息列表区域 -->
 					<view class="message-list">
-						<view v-for="(message, index) in chatMessages" :key="index" 
+						<view v-for="(message, index) in chatMessages" :key="message.id" 
 							:class="['message-item', message.isMe ? 'message-mine' : 'message-other']">
 							<!-- 时间戳 - 每组消息的第一条显示 -->
 							<view class="message-time" v-if="shouldShowTime(index, chatMessages)">
@@ -369,7 +369,7 @@
 								<view class="add-friend-btn" @click="showAddFriendModal = true">添加好友</view>
 							</view>
 							<view v-else class="friend-items">
-								<view v-for="(friend, index) in filteredFriendList" :key="index" class="friend-item" @click="startChat(friend)">
+								<view v-for="(friend, index) in filteredFriendList" :key="friend.uid" class="friend-item" @click="startChat(friend)">
 									<view class="friend-avatar" :style="generateAvatarStyle(friend.name)">
 										<text>{{ getAvatarText(friend.name) }}</text>
 									</view>
@@ -444,7 +444,7 @@
 									</view>
 									
 									<view class="search-results" v-if="searchFriendResults.length > 0">
-										<view v-for="(user, index) in searchFriendResults" :key="index" class="search-result-item">
+										<view v-for="(user, index) in searchFriendResults" :key="user.uid" class="search-result-item">
 											<view class="user-avatar" :style="generateAvatarStyle(user.name || '用户')">
 												<text>{{ getAvatarText(user.name || '用户') }}</text>
 											</view>
@@ -507,7 +507,7 @@
 					
 					<!-- 消息列表区域 -->
 					<view class="message-list">
-						<view v-for="(message, index) in singleChatMessages" :key="index" 
+						<view v-for="(message, index) in singleChatMessages" :key="message.id" 
 							:class="['message-item', message.isMe ? 'message-mine' : 'message-other']">
 							<!-- 时间戳 - 每组消息的第一条显示 -->
 							<view class="message-time" v-if="shouldShowTime(index, singleChatMessages)">

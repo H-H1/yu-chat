@@ -23,7 +23,7 @@
 					<view class="add-friend-btn" @click="showAddFriendModal = true">添加好友</view>
 				</view>
 				<view v-else class="friend-items">
-					<view v-for="(friend, index) in filteredFriendList" :key="index" class="friend-item" @click="startChat(friend)">
+					<view v-for="(friend, index) in filteredFriendList" :key="friend.uid" class="friend-item" @click="startChat(friend)">
 						<view class="friend-avatar" :style="generateAvatarStyle(friend.name)">
 							<text>{{ getAvatarText(friend.name) }}</text>
 						</view>
@@ -83,7 +83,7 @@
 						<text>暂无好友申请</text>
 					</view>
 					<view v-else class="apply-list">
-						<view v-for="(apply, index) in friendApplyList" :key="index" class="apply-item">
+						<view v-for="(apply, index) in friendApplyList" :key="apply.uid" class="apply-item">
 							<view class="user-avatar" :style="generateAvatarStyle(apply.uid)">
 								<text>{{ getAvatarText(apply.uid) }}</text>
 							</view>

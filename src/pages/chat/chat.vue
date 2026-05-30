@@ -31,7 +31,7 @@
 					<text>暂无消息</text>
 				</view>
 				<view v-else class="message-list">
-					<view v-for="(message, index) in messages" :key="index" class="message-item" :id="'msg-' + index">
+					<view v-for="(message, index) in messages" :key="message.timestamp" class="message-item" :id="'msg-' + index">
 						<view class="message-time" v-if="shouldShowTime(index)">
 							<text>{{ formatTime(message.timestamp) }}</text>
 						</view>
