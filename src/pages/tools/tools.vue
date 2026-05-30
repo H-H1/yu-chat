@@ -181,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 
 const writingTools = ref([
 	{ name: '讯飞绘文', logo: 'https://ai-bot.cn/wp-content/uploads/2024/08/turbodesk-logo.png', url: 'https://turbodesk.xfyun.cn/?channelid=aitool1', price: '免费', desc: '科大讯飞出品的 AI 写作助手，适合教育、办公等正式文本创作。' },
@@ -429,7 +429,23 @@ const backToHome = () => {
 
 // 搜索功能
 const searchKeyword = ref('');
+const debouncedKeyword = ref('');
 const highlightedToolId = ref('');
+let searchDebounceTimer = null;
+
+watch(searchKeyword, (val) => {
+	if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+	searchDebounceTimer = setTimeout(() => {
+		debouncedKeyword.value = val;
+	}, 300);
+});
+
+onUnmounted(() => {
+	if (searchDebounceTimer) {
+		clearTimeout(searchDebounceTimer);
+		searchDebounceTimer = null;
+	}
+});
 
 // 所有工具的扁平化列表，用于搜索
 const allTools = computed(() => {
@@ -489,13 +505,13 @@ const allTools = computed(() => {
 	return tools;
 });
 
-// 搜索结果
+// 搜索结果（基于防抖后的关键词）
 const searchResults = computed(() => {
-	if (!searchKeyword.value.trim()) {
+	if (!debouncedKeyword.value.trim()) {
 		return [];
 	}
 	
-	const keyword = searchKeyword.value.toLowerCase().trim();
+	const keyword = debouncedKeyword.value.toLowerCase().trim();
 	return allTools.value.filter(tool => 
 		tool.name.toLowerCase().includes(keyword) ||
 		(tool.tool.desc && tool.tool.desc.toLowerCase().includes(keyword))
@@ -515,6 +531,7 @@ const handleSearchFocus = () => {
 // 清除搜索
 const clearSearch = () => {
 	searchKeyword.value = '';
+	debouncedKeyword.value = '';
 	highlightedToolId.value = '';
 };
 

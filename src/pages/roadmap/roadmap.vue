@@ -342,14 +342,21 @@ const scrollToHeading = (index) => {
 	});
 };
 
+let scrollTicking = false;
+
 const onScroll = (e) => {
-	const scrollY = e.detail ? e.detail.scrollTop : 0;
-	let current = 0;
-	tocItems.value.forEach((_, i) => {
-		const el = document.getElementById(`heading-${i}`);
-		if (el && el.offsetTop - 80 <= scrollY) current = i;
+	if (scrollTicking) return;
+	scrollTicking = true;
+	requestAnimationFrame(() => {
+		const scrollY = e.detail ? e.detail.scrollTop : 0;
+		let current = 0;
+		tocItems.value.forEach((_, i) => {
+			const el = document.getElementById(`heading-${i}`);
+			if (el && el.offsetTop - 80 <= scrollY) current = i;
+		});
+		activeIndex.value = current;
+		scrollTicking = false;
 	});
-	activeIndex.value = current;
 };
 </script>
 

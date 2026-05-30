@@ -379,12 +379,18 @@ const handleGetSmsCode = () => {
 	let countdown = 60;
 	smsButtonText.value = `${countdown}秒后重试`;
 	
-	const timer = setInterval(() => {
+	// 清除之前的定时器（防止重复点击）
+	if (timer.value) {
+		clearInterval(timer.value);
+		timer.value = null;
+	}
+	timer.value = setInterval(() => {
 		countdown--;
 		smsButtonText.value = `${countdown}秒后重试`;
 		
 		if (countdown <= 0) {
-			clearInterval(timer);
+			clearInterval(timer.value);
+			timer.value = null;
 			smsButtonDisabled.value = false;
 			smsButtonText.value = '获取验证码';
 		}
