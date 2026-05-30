@@ -170,7 +170,7 @@
 
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
-import QRCode from 'qrcode';
+import qrcode from 'qrcode-generator';
 import API_URL from '@/utils/api';
 import { getTokenValue } from '@/utils/auth';
 
@@ -361,11 +361,10 @@ async function startLogin() {
 		const resp = await apiGet(`ilink/bot/get_bot_qrcode?bot_type=${BOT_TYPE}`);
 		// qrcode_img_content 是微信扫码 URL，用 qrcode 库把它渲染成二维码图片
 		const qrUrl = resp.qrcode_img_content || resp.qrcode;
-		qrDataUrl.value = await QRCode.toDataURL(qrUrl, {
-			width: 240,
-			margin: 2,
-			color: { dark: '#000000', light: '#ffffff' },
-		});
+		const qr = qrcode(0, 'M');
+		qr.addData(qrUrl);
+		qr.make();
+		qrDataUrl.value = qr.createDataURL(8, 2);
 		qrStatusMsg.value = '请用微信扫描二维码';
 		loginLoading.value = false;
 		polling.value = true;
