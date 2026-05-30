@@ -199,7 +199,7 @@
 										<!-- 如果是文本消息 -->
 										<view v-else>
 											<!-- #ifdef H5 -->
-											<view v-html="formatMarkdown(message.content)"></view>
+											<view v-html="renderedMarkdown(message)"></view>
 											<!-- #endif -->
 											<!-- #ifndef H5 -->
 											<text>{{ message.content }}</text>
@@ -325,7 +325,7 @@
 									<view class="sender-name">{{ message.isMe ? userInfo.name : message.name }}</view>
 									<view class="message-bubble">
 										<!-- #ifdef H5 -->
-										<view v-html="formatMarkdown(message.content)"></view>
+										<view v-html="renderedMarkdown(message)"></view>
 										<!-- #endif -->
 										<!-- #ifndef H5 -->
 										<text>{{ message.content }}</text>
@@ -523,7 +523,7 @@
 									<view class="sender-name">{{ message.isMe ? userInfo.name : message.name }}</view>
 									<view class="message-bubble">
 										<!-- #ifdef H5 -->
-										<view v-html="formatMarkdown(message.content)"></view>
+										<view v-html="renderedMarkdown(message)"></view>
 										<!-- #endif -->
 										<!-- #ifndef H5 -->
 										<text>{{ message.content }}</text>
@@ -968,7 +968,13 @@ const formatMarkdown = (text = '') => {
 	return html;
 };
 
-
+// 惰性缓存 Markdown 渲染 — 首次调用执行渲染并写入 message.rendered，后续直接返回缓存
+const renderedMarkdown = (message) => {
+	if (!message.rendered) {
+		message.rendered = formatMarkdown(message.content);
+	}
+	return message.rendered;
+};
 
 // AI绘图发送消息
 const sendAiImageMessage = () => {

@@ -598,6 +598,7 @@ const sendMessage = async () => {
 		id: Date.now(),
 		role: 'user',
 		content: userMessage,
+		rendered: renderMarkdownContent(userMessage),
 		timestamp: Date.now()
 	};
 	messages.value.push(userMsg);
@@ -631,9 +632,11 @@ const sendMessage = async () => {
 		if (aiMsg) {
 			const msgIndex = messages.value.findIndex(m => m.id === aiMsg.id);
 			if (msgIndex !== -1) {
+				const errorContent = messages.value[msgIndex].content || `请求失败：${error.message || '网络错误'}`;
 				messages.value[msgIndex] = {
 					...messages.value[msgIndex],
-					content: messages.value[msgIndex].content || `请求失败：${error.message || '网络错误'}`,
+					content: errorContent,
+					rendered: renderMarkdownContent(errorContent),
 					isStreaming: false
 				};
 			}
@@ -1231,9 +1234,11 @@ const regenerateResponse = async (messageIndex) => {
 			if (aiMsg) {
 				const msgIndex = messages.value.findIndex(m => m.id === aiMsg.id);
 				if (msgIndex !== -1) {
+					const errorContent = messages.value[msgIndex].content || `请求失败：${error.message || '网络错误'}`;
 					messages.value[msgIndex] = {
 						...messages.value[msgIndex],
-						content: messages.value[msgIndex].content || `请求失败：${error.message || '网络错误'}`,
+						content: errorContent,
+						rendered: renderMarkdownContent(errorContent),
 						isStreaming: false
 					};
 				}
@@ -1403,17 +1408,26 @@ const handleInputKeydown = (e) => {
 
 // 滚动到底部
 const scrollToBottom = () => {
+	// 非 H5：更新 scrollTop ref 触发 scroll-view 的 :scroll-top 绑定
+	// #ifndef H5
+	scrollTop.value = scrollTop.value === 999999 ? 999998 : 999999;
+	// #endif
+
+	// H5：用 scrollIntoView 滚到最后一条消息，不依赖 scrollHeight 计算
+	// #ifdef H5
+	// 先尝试立即滚
+	const lastMsg = document.querySelector('.message-item:last-child');
+	if (lastMsg) {
+		lastMsg.scrollIntoView({ block: 'end', behavior: 'instant' });
+	}
+	// 流式输出时内容持续撑高，延迟一帧再滚一次兜底
 	nextTick(() => {
-		// #ifdef H5
-		const container = document.querySelector('.message-container');
-		if (container) {
-			container.scrollTop = container.scrollHeight;
+		const lm = document.querySelector('.message-item:last-child');
+		if (lm) {
+			lm.scrollIntoView({ block: 'end', behavior: 'instant' });
 		}
-		// #endif
-		// #ifndef H5
-		scrollTop.value = scrollTop.value === 99999 ? 99998 : 99999;
-		// #endif
 	});
+	// #endif
 };
 
 // 显示气泡提示
